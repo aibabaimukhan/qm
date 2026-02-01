@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Учебный курс: Основы Экологии</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f9f4;
+            color: #333;
+        }
+        header {
+            background-color: #2e7d32;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        h1 { margin: 0; }
+        .lesson-list {
+            list-style: none;
+            padding: 0;
+        }
+        .lesson-item {
+            border-bottom: 1px solid #eee;
+        }
+        .lesson-link {
+            display: block;
+            padding: 20px;
+            text-decoration: none;
+            color: #2c3e50;
+            font-size: 1.2em;
+            transition: background 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .lesson-link:hover {
+            background-color: #e8f5e9;
+            color: #1b5e20;
+        }
+        .status {
+            font-size: 0.8em;
+            padding: 5px 10px;
+            border-radius: 15px;
+        }
+        .open { background-color: #c8e6c9; color: #2e7d32; }
+        .locked { background-color: #eceff1; color: #78909c; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Курс: Основы Экологии</h1>
+    <p>Электронный образовательный ресурс</p>
+</header>
+
+<div class="container">
+    <h2>Список занятий</h2>
+    <ul class="lesson-list">
+        <li class="lesson-item">
+            <a href="lesson1.html" class="lesson-link">
+                <span><strong>Урок №1:</strong> Введение в экологию</span>
+                <span class="status open">Доступно</span>
+            </a>
+        </li>
+        
+        <li class="lesson-item">
+            <div class="lesson-link" style="cursor: not-allowed; color: #aaa;">
+                <span><strong>Урок №2:</strong> Среда обитания (Скоро)</span>
+                <span class="status locked">Закрыто</span>
+            </div>
+        </li>
+        <li class="lesson-item">
+            <div class="lesson-link" style="cursor: not-allowed; color: #aaa;">
+                <span><strong>Урок №3:</strong> Популяции (Скоро)</span>
+                <span class="status locked">Закрыто</span>
+            </div>
+        </li>
+    </ul>
+</div>
+
+</body>
+</html>
