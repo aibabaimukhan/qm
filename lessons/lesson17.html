@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Урок 17: Сортировка отходов</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            /* Цвета контейнеров (Стандарт РФ/Международный) */
+            --bin-blue: #1976d2;   /* Бумага */
+            --bin-green: #388e3c;  /* Стекло */
+            --bin-yellow: #fbc02d; /* Пластик */
+            --bin-red: #d32f2f;    /* Опасные */
+            --bin-brown: #795548;  /* Органика */
+            
+            --bg: #f3f4f6;
+            --white: #ffffff;
+            --text: #333;
+        }
+
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            line-height: 1.6; 
+            color: var(--text); 
+            background-color: var(--bg); 
+            margin: 0; 
+            background-image: url('data:image/svg+xml;utf8,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><path d="M20 20 h20 v20 h-20 z" fill="%23e0e0e0" opacity="0.4"/></svg>');
+        }
+
+        header { 
+            background: linear-gradient(135deg, #2e7d32, #81c784); 
+            color: white; 
+            padding: 25px 5%; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border-radius: 0 0 20px 20px;
+        }
+
+        .back-btn { 
+            color: white; text-decoration: none; font-weight: bold; 
+            border: 2px solid rgba(255,255,255,0.7); padding: 8px 20px; 
+            border-radius: 25px; transition: 0.3s;
+        }
+        .back-btn:hover { background: white; color: #2e7d32; }
+
+        .content { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+
+        section { 
+            background: var(--white); padding: 30px; border-radius: 20px; 
+            margin-bottom: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border-top: 5px solid #2e7d32;
+        }
+
+        h2 { color: #1b5e20; border-bottom: 3px solid #a5d6a7; padding-bottom: 10px; display: inline-block; margin-top: 0; }
+        h3 { color: #2e7d32; margin-top: 20px; }
+
+        /* ТЕОРИЯ: Контейнеры (Flip Cards) */
+        .bins-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-top: 20px; }
+        .bin-card { 
+            height: 220px; perspective: 1000px; cursor: pointer; 
+        }
+        .bin-inner { 
+            position: relative; width: 100%; height: 100%; text-align: center; 
+            transition: transform 0.6s; transform-style: preserve-3d; 
+            border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .bin-card:hover .bin-inner { transform: rotateY(180deg); }
+        .bin-front, .bin-back { 
+            position: absolute; width: 100%; height: 100%; backface-visibility: hidden; 
+            border-radius: 15px; display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; padding: 10px; box-sizing: border-box;
+        }
+        .bin-front { color: white; font-weight: bold; font-size: 1.2rem; }
+        .bin-front span { font-size: 3rem; margin-bottom: 10px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3)); }
+        .bin-back { background: white; transform: rotateY(180deg); border: 2px solid #ccc; color: #333; font-size: 0.9rem; }
+        
+        /* Цвета карточек */
+        .b-blue .bin-front { background: var(--bin-blue); }
+        .b-green .bin-front { background: var(--bin-green); }
+        .b-yellow .bin-front { background: var(--bin-yellow); color: #333; }
+        .b-red .bin-front { background: var(--bin-red); }
+        .b-brown .bin-front { background: var(--bin-brown); }
+
+        /* ИГРА: Сортировка */
+        .sorting-game { display: flex; flex-direction: column; gap: 20px; }
+        
+        .trash-pool { 
+            display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; 
+            background: #e0e0e0; padding: 15px; border-radius: 10px; min-height: 80px;
+        }
+        
+        .trash-item { 
+            background: white; padding: 10px 15px; border-radius: 50px; 
+            cursor: grab; font-size: 1.5rem; box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+            transition: 0.2s; user-select: none;
+        }
+        .trash-item:active { cursor: grabbing; transform: scale(1.1); }
+
+        .bins-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+        .game-bin { 
+            width: 18%; min-width: 100px; height: 150px; 
+            border-bottom: 5px solid; border-radius: 10px; background: #fafafa;
+            display: flex; flex-direction: column; align-items: center; padding-top: 10px;
+            transition: 0.3s;
+        }
+        .game-bin h4 { margin: 0; font-size: 0.9rem; }
+        .game-bin.drag-over { background: #e8f5e9; transform: scale(1.05); }
+
+        /* ВИДЕО */
+        .video-wrapper { border-radius: 15px; overflow: hidden; position: relative; padding-bottom: 56.25%; height: 0; margin: 20px 0; border: 4px solid var(--text); }
+        .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+        /* РАБОЧИЕ ЛИСТЫ */
+        details.worksheet { background: var(--white); border: 1px solid #ccc; border-radius: 8px; margin-bottom: 15px; overflow: hidden; }
+        summary.worksheet-header { background: #c8e6c9; padding: 15px; cursor: pointer; font-weight: bold; color: var(--text); list-style: none; display: flex; justify-content: space-between; align-items: center; }
+        summary.worksheet-header:hover { background: #a5d6a7; }
+        summary.worksheet-header::after { content: '▼'; font-size: 0.8em; }
+        details[open] summary.worksheet-header::after { content: '▲'; }
+        .sheet-content { padding: 20px; border-top: 1px solid #eee; background: #fff; }
+        .sheet-input { border: none; border-bottom: 2px solid #aaa; background: #f9f9f9; width: 100%; padding: 5px; margin-bottom: 5px; }
+        table.sheet-table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 0.9rem; }
+        table.sheet-table th, table.sheet-table td { border: 1px solid #aaa; padding: 8px; text-align: left; vertical-align: top; }
+        table.sheet-table th { background: #eee; }
+        table.sheet-table input { width: 95%; border: none; background: transparent; padding: 5px; }
+        .checkbox-group label { display: block; margin: 5px 0; cursor: pointer; }
+        textarea.sheet-area { width: 100%; height: 60px; border: 1px solid #ccc; border-radius: 5px; padding: 10px; background: #fcfcfc; }
+        
+        .btn-download { background: #1b5e20; color: white; border: none; padding: 15px 30px; border-radius: 30px; cursor: pointer; width: 100%; font-size: 1.1rem; font-weight: bold; margin-top: 20px; transition: 0.3s; }
+        .btn-download:hover { background: #2e7d32; transform: translateY(-2px); }
+
+        /* ТЕСТ */
+        .quiz-item { margin-bottom: 15px; padding: 15px; background: #fffde7; border-radius: 10px; border-left: 4px solid #fbc02d; }
+        .btn-check { background: #2e7d32; color: white; border: none; padding: 10px 25px; border-radius: 20px; cursor: pointer; }
+
+        /* РЕФЛЕКСИЯ */
+        .eco-footprint { text-align: center; }
+        .pledge-input { width: 70%; padding: 10px; border: 2px solid #2e7d32; border-radius: 10px; }
+        .pledge-btn { width: 25%; padding: 10px; background: #2e7d32; color: white; border: none; border-radius: 10px; cursor: pointer; }
+        .pledge-list { margin-top: 20px; text-align: left; }
+        .pledge-item { background: #e8f5e9; padding: 10px; margin-bottom: 5px; border-radius: 5px; animation: fadeIn 0.5s; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="../index.html" class="back-btn">← Меню</a>
+    <div style="text-align: right">
+        <h1 style="margin:0; font-size: 1.5rem;">Сортировка отходов</h1>
+        <small>Урок №17</small>
+    </div>
+</header>
+
+<div class="content">
+    
+    <section>
+        <h2>♻️ Мусор или Ресурс?</h2>
+        <p><i>Вопрос:</i> Куда вы выбрасываете батарейки? А стекло? Если всё в одно ведро — этот урок для вас!</p>
+        <div style="background: #e8f5e9; padding: 15px; border-radius: 10px; border-left: 5px solid #2e7d32;">
+            <strong>Цель:</strong> Научиться превращать отходы в доходы (для природы и экономики).
+        </div>
+    </section>
+
+    <section>
+        <h2>🎨 Цвета чистоты</h2>
+        <p>Нажмите на бак, чтобы узнать правила:</p>
+        <div class="bins-grid">
+            <div class="bin-card b-blue"><div class="bin-inner"><div class="bin-front"><span>📰</span>БУМАГА</div><div class="bin-back"><b>МОЖНО:</b><br>Газеты, картон, тетради.<br><b>НЕЛЬЗЯ:</b><br>Грязные салфетки, чеки.</div></div></div>
+            <div class="bin-card b-green"><div class="bin-inner"><div class="bin-front"><span>🍾</span>СТЕКЛО</div><div class="bin-back"><b>МОЖНО:</b><br>Банки, бутылки.<br><b>НЕЛЬЗЯ:</b><br>Лампочки, керамика, зеркала.</div></div></div>
+            <div class="bin-card b-yellow"><div class="bin-inner"><div class="bin-front"><span>🥤</span>ПЛАСТИК</div><div class="bin-back"><b>МОЖНО:</b><br>Бутылки (PET), пакеты.<br><b>НЕЛЬЗЯ:</b><br>Игрушки, зубные щетки (сложно).</div></div></div>
+            <div class="bin-card b-red"><div class="bin-inner"><div class="bin-front"><span>🔋</span>ОПАСНОЕ</div><div class="bin-back"><b>СДАВАТЬ ОТДЕЛЬНО:</b><br>Батарейки, градусники, лампы, аккумуляторы.</div></div></div>
+            <div class="bin-card b-brown"><div class="bin-inner"><div class="bin-front"><span>🍌</span>ОРГАНИКА</div><div class="bin-back"><b>МОЖНО:</b><br>Очистки, еда.<br><b>В КОМПОСТ!</b></div></div></div>
+        </div>
+        
+
+[Image of waste sorting cycle diagram]
+
+        <div class="video-wrapper">
+            <iframe src="https://www.youtube.com/embed/5yZlVq2W9-I" title="Переработка" frameborder="0" allowfullscreen></iframe>
+        </div>
+    </section>
+
+    <section>
+        <h2>🗑️ Игра «Сортировочный центр»</h2>
+        <p>Перетащите мусор в правильный контейнер:</p>
+        
+        <div class="sorting-game">
+            <div class="trash-pool" id="trashPool">
+                <div class="trash-item" draggable="true" ondragstart="drag(event)" id="t1" data-type="blue">📰</div>
+                <div class="trash-item" draggable="true" ondragstart="drag(event)" id="t2" data-type="green">🍾</div>
+                <div class="trash-item" draggable="true" ondragstart="drag(event)" id="t3" data-type="yellow">🥤</div>
+                <div class="trash-item" draggable="true" ondragstart="drag(event)" id="t4" data-type="brown">🍎</div>
+                <div class="trash-item" draggable="true" ondragstart="drag(event)" id="t5" data-type="red">🔋</div>
+                <div class="trash-item" draggable="true" ondragstart="drag(event)" id="t6" data-type="blue">📦</div>
+                <div class="trash-item" draggable="true" ondragstart="drag(event)" id="t7" data-type="yellow">🛍️</div>
+                <div class="trash-item" draggable="true" ondragstart="drag(event)" id="t8" data-type="red">💡</div>
+            </div>
+
+            <div class="bins-row">
+                <div class="game-bin" style="border-color: var(--bin-blue);" ondrop="drop(event, 'blue')" ondragover="allowDrop(event)"><h4>БУМАГА</h4></div>
+                <div class="game-bin" style="border-color: var(--bin-green);" ondrop="drop(event, 'green')" ondragover="allowDrop(event)"><h4>СТЕКЛО</h4></div>
+                <div class="game-bin" style="border-color: var(--bin-yellow);" ondrop="drop(event, 'yellow')" ondragover="allowDrop(event)"><h4>ПЛАСТИК</h4></div>
+                <div class="game-bin" style="border-color: var(--bin-red);" ondrop="drop(event, 'red')" ondragover="allowDrop(event)"><h4>ОПАСНО</h4></div>
+                <div class="game-bin" style="border-color: var(--bin-brown);" ondrop="drop(event, 'brown')" ondragover="allowDrop(event)"><h4>ОРГАНИКА</h4></div>
+            </div>
+            <p id="gameMsg" style="text-align:center; font-weight:bold; height:20px;"></p>
+        </div>
+    </section>
+
+    <section id="worksheets-container">
+        <h2>📝 Рабочие листы (Word)</h2>
+        <p>Заполните и скачайте материалы урока.</p>
+
+        <details class="worksheet" open>
+            <summary class="worksheet-header">📄 ЛИСТ 1 — «Разложи по бакам»</summary>
+            <div class="sheet-content">
+                <table class="sheet-table">
+                    <tr><th>Предмет</th><th>Контейнер</th><th>Почему?</th></tr>
+                    <tr><td>Газета</td><td><input type="text" value="Синий (Бумага)"></td><td><input type="text"></td></tr>
+                    <tr><td>Батарейка</td><td><input type="text" value="Красный (Опасно)"></td><td><input type="text"></td></tr>
+                    <tr><td>Пластиковая бутылка</td><td><input type="text" value="Желтый"></td><td><input type="text"></td></tr>
+                    <tr><td>Стеклянная банка</td><td><input type="text" value="Зеленый"></td><td><input type="text"></td></tr>
+                </table>
+            </div>
+        </details>
+
+        <details class="worksheet">
+            <summary class="worksheet-header">✅ ЛИСТ 2 — «Что перерабатывают?»</summary>
+            <div class="sheet-content">
+                <div class="checkbox-group">
+                    <p>Отметь, что можно переработать:</p>
+                    <label><input type="checkbox"> Стекло</label>
+                    <label><input type="checkbox"> Картон</label>
+                    <label><input type="checkbox"> Грязные салфетки (Нет)</label>
+                    <label><input type="checkbox"> Батарейки (Отдельно)</label>
+                    <label><input type="checkbox"> Металл</label>
+                </div>
+            </div>
+        </details>
+
+        <details class="worksheet">
+            <summary class="worksheet-header">💡 ЛИСТ 3 — «Как уменьшить мусор?»</summary>
+            <div class="sheet-content">
+                <p>Предложи 3 способа меньше мусорить дома:</p>
+                <textarea class="sheet-area" placeholder="1. Использовать шопер..."></textarea>
+            </div>
+        </details>
+
+        <details class="worksheet">
+            <summary class="worksheet-header">👣 ЛИСТ 4 — «Мой экослед»</summary>
+            <div class="sheet-content">
+                <p>Мой мусор за 1 день:</p>
+                <table class="sheet-table">
+                    <tr><th>Вид</th><th>Количество (шт)</th><th>Перерабатывается?</th></tr>
+                    <tr><td>Пластик</td><td><input type="text"></td><td><input type="text"></td></tr>
+                    <tr><td>Бумага</td><td><input type="text"></td><td><input type="text"></td></tr>
+                    <tr><td>Органика</td><td><input type="text"></td><td><input type="text"></td></tr>
+                </table>
+            </div>
+        </details>
+
+        <button class="btn-download" onclick="generateAndDownloadWord()">📥 Скачать листы (Word)</button>
+    </section>
+
+    <section>
+        <h2>🧠 Тест: Сортировщик</h2>
+        <form id="quizForm">
+            <div class="quiz-item">1. Куда газету? <br><input type="radio" name="q1" value="c"> Синий <input type="radio" name="q1" value="a"> Зеленый</div>
+            <div class="quiz-item">2. Опасные отходы: <br><input type="radio" name="q2" value="b"> Батарейки <input type="radio" name="q2" value="a"> Газеты</div>
+            <div class="quiz-item">3. Желтый бак для: <br><input type="radio" name="q3" value="a"> Пластика <input type="radio" name="q3" value="b"> Металла</div>
+            <div class="quiz-item">4. Что можно переработать? <br><input type="radio" name="q4" value="d"> Всё перечисленное (бумага, стекло, пластик) <input type="radio" name="q4" value="a"> Только пластик</div>
+            <button type="button" class="btn-check" onclick="checkQuiz()">Проверить</button>
+            <p id="quiz-result" style="font-weight:bold; margin-top:10px;"></p>
+        </form>
+    </section>
+
+    <section>
+        <h2>👣 Мой Экослед</h2>
+        <div class="eco-footprint">
+            <p>Закончи фразу: «Я могу уменьшить мусор, если...»</p>
+            <input type="text" id="pledgeInput" class="pledge-input" placeholder="Например: куплю многоразовую бутылку">
+            <button class="pledge-btn" onclick="addPledge()">Добавить</button>
+            <div id="pledgeList" class="pledge-list"></div>
+        </div>
+    </section>
+</div>
+
+<script>
+    // --- ИГРА: Drag & Drop ---
+    function drag(ev) {
+        ev.dataTransfer.setData("id", ev.target.id);
+        ev.dataTransfer.setData("type", ev.target.dataset.type);
+    }
+    function allowDrop(ev) { ev.preventDefault(); ev.currentTarget.classList.add('drag-over'); }
+    function drop(ev, binType) {
+        ev.preventDefault();
+        ev.currentTarget.classList.remove('drag-over');
+        
+        const id = ev.dataTransfer.getData("id");
+        const itemType = ev.dataTransfer.getData("type");
+        const el = document.getElementById(id);
+        const msg = document.getElementById('gameMsg');
+
+        if(itemType === binType) {
+            ev.currentTarget.appendChild(el); // Перемещаем в бак
+            el.style.display = 'none'; // "Съели" мусор
+            
+            // Визуальный эффект бака
+            const originalColor = ev.currentTarget.style.borderColor;
+            ev.currentTarget.style.backgroundColor = originalColor;
+            setTimeout(() => { ev.currentTarget.style.backgroundColor = '#fafafa'; }, 300);
+
+            msg.innerText = "Верно! Чистота +1 🌿";
+            msg.style.color = "green";
+        } else {
+            msg.innerText = "Ошибка! Это не тот контейнер ❌";
+            msg.style.color = "red";
+        }
+    }
+    // Сброс стиля при уходе драга
+    document.querySelectorAll('.game-bin').forEach(bin => {
+        bin.addEventListener('dragleave', () => bin.classList.remove('drag-over'));
+    });
+
+    // --- WORD ---
+    function generateAndDownloadWord() {
+        const container = document.getElementById('worksheets-container');
+        const clone = container.cloneNode(true);
+        clone.querySelector('button').remove(); clone.querySelector('h2').remove(); clone.querySelector('p').remove();
+        
+        clone.querySelectorAll('input, textarea').forEach(input => {
+            const span = document.createElement('span');
+            span.style.color = 'blue'; span.style.fontWeight = 'bold';
+            if (input.type === 'checkbox') span.innerText = input.checked ? '☒ ' : '☐ ';
+            else span.innerText = input.value || "______________________";
+            input.replaceWith(span);
+        });
+
+        clone.querySelectorAll('details').forEach(det => {
+            const title = det.querySelector('summary').innerText;
+            const div = document.createElement('div');
+            div.innerHTML = `<h3 style="background:#eee; border-bottom:1px solid #000; padding:5px;">${title}</h3>` + det.querySelector('.sheet-content').innerHTML;
+            det.replaceWith(div);
+        });
+
+        const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Отчет</title></head><body>";
+        const footer = "</body></html>";
+        const content = `<h1 style="text-align:center;color:#2e7d32">Правила сортировки</h1>` + clone.innerHTML;
+        
+        const blob = new Blob(['\ufeff', header + content + footer], { type: 'application/msword' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url; link.download = 'Моя_Сортировка_Урок_17.doc';
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    }
+
+    // --- ТЕСТ ---
+    function checkQuiz() {
+        const form = document.getElementById('quizForm');
+        let score = 0;
+        if(form.q1.value === 'c') score++;
+        if(form.q2.value === 'b') score++;
+        if(form.q3.value === 'a') score++;
+        if(form.q4.value === 'd') score++;
+        const res = document.getElementById('quiz-result');
+        res.innerText = `Результат: ${score}/4. ` + (score===4 ? "Эко-мастер!" : "Изучи цвета баков.");
+        res.style.color = score===4 ? "green" : "red";
+    }
+
+    // --- РЕФЛЕКСИЯ ---
+    function addPledge() {
+        const input = document.getElementById('pledgeInput');
+        const text = input.value.trim();
+        if(text) {
+            const list = document.getElementById('pledgeList');
+            const item = document.createElement('div');
+            item.className = 'pledge-item';
+            item.innerText = "👣 ... " + text;
+            list.prepend(item);
+            input.value = '';
+        }
+    }
+</script>
+
+</body>
+</html>

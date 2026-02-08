@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Урок 4: Принципы устойчивого туризма</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #2e7d32;
+            --dark: #1b5e20;
+            --accent: #8bc34a;
+            --bg: #f1f8e9;
+            --white: #ffffff;
+            --brown: #795548;
+            --forest: #2d6a4f;
+        }
+
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            background-color: var(--bg); 
+            margin: 0; 
+        }
+
+        header { 
+            background: linear-gradient(135deg, var(--dark), var(--primary)); 
+            color: white; 
+            padding: 25px 5%; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .back-btn { 
+            color: white; 
+            text-decoration: none; 
+            font-weight: bold; 
+            border: 2px solid rgba(255,255,255,0.7); 
+            padding: 8px 20px; 
+            border-radius: 25px; 
+            transition: 0.3s;
+        }
+
+        .back-btn:hover { background: white; color: var(--dark); border-color: white; }
+
+        .content { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+
+        section { 
+            background: var(--white); 
+            padding: 30px; 
+            border-radius: 15px; 
+            margin-bottom: 30px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        h2 { color: var(--dark); border-left: 5px solid var(--accent); padding-left: 15px; margin-top: 0; }
+        h3 { color: var(--forest); margin-top: 20px; }
+
+        .info-box {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 5px solid #2196f3;
+            margin-bottom: 20px;
+        }
+
+        /* Облако ассоциаций */
+        .cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            border: 1px dashed #ccc;
+            margin: 15px 0;
+        }
+        .cloud span {
+            background: var(--primary);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        /* Схема устойчивости */
+        .scheme {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        .scheme-item {
+            background: #f9fbf9;
+            border: 2px solid var(--primary);
+            padding: 15px;
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        /* Интерактивный маршрут */
+        .trail-box {
+            background: #fdfdfd;
+            border: 2px solid var(--forest);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .trail-header {
+            background: var(--forest);
+            color: white;
+            padding: 15px 20px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .stop-content {
+            padding: 25px;
+            display: none;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        .stop-content.active { display: block; }
+
+        .focus-box {
+            background: #e8f5e9;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            margin-top: 15px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .task-list {
+            background: #fff8e1;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 1px dashed #ffb300;
+        }
+
+        .nav-controls {
+            padding: 15px 25px;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid #ddd;
+        }
+
+        .btn-nav {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .btn-next { background: var(--forest); color: white; }
+        .btn-prev { background: #ccc; color: #666; }
+
+        .video-wrapper { 
+            border-radius: 15px; overflow: hidden; position: relative; 
+            padding-bottom: 56.25%; height: 0; margin: 20px 0;
+        }
+        .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+        .homework { border-left: 8px solid var(--brown); background: #fbe9e7; padding: 20px; border-radius: 10px; }
+
+        /* Стили Рефлексии */
+        .traffic-light-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            padding: 20px 0;
+        }
+        .light-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            width: 140px;
+        }
+        .light-item:hover { transform: scale(1.1); }
+        .light-circle {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            border: 4px solid white;
+        }
+        .green { background-color: #4caf50; }
+        .yellow { background-color: #ffeb3b; }
+        .red { background-color: #f44336; }
+        .light-item span { font-size: 0.85rem; font-weight: bold; text-align: center; }
+
+        .btn-clear { background: #9e9e9e; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; margin-top: 20px; opacity: 0.8; transition: 0.3s; }
+        .btn-clear:hover { opacity: 1; }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="../index.html" class="back-btn">← Меню</a>
+    <div style="text-align: right">
+        <h1 style="margin:0; font-size: 1.5rem;">Принципы устойчивого туризма</h1>
+        <small>Урок №4</small>
+    </div>
+</header>
+
+<div class="content">
+    
+    <section>
+        <h2>🌟 Общие сведения и Цели</h2>
+        <div class="info-box">
+            <strong>Цель:</strong> Сформировать понимание устойчивого туризма и научить применять его правила на практике.<br>
+            <strong>Результат:</strong> Вы научитесь отличать экологичное поведение от разрушительного.
+        </div>
+        
+        <h3>Мини-игра «Ассоциации»</h3>
+        <p>Назовите ассоциации со словом «Устойчивость»:</p>
+        <div class="cloud">
+            <span>Бережность</span>
+            <span>Природа</span>
+            <span>Экономия ресурсов</span>
+            <span>Экотропы</span>
+            <span>Будущее</span>
+            <span>Ответственность</span>
+        </div>
+    </section>
+
+    <section>
+        <h2>📚 Теория: Что такое устойчивость?</h2>
+        <p>Устойчивый туризм — это умение путешествовать так, чтобы природа и культура региона не страдали, а развивались.</p>
+        
+        <div class="scheme">
+            <div class="scheme-item">☘️<br>Экология</div>
+            <div class="scheme-item">💰<br>Экономика</div>
+            <div class="scheme-item">👥<br>Общество</div>
+        </div>
+        
+        <div class="video-wrapper">
+            <iframe src="https://www.youtube.com/embed/1mwO4kAAPHc" title="Принципы экотуризма" frameborder="0" allowfullscreen></iframe>
+        </div>
+    </section>
+
+    <section>
+        <h2>🚶 Практика: Эко-маршрут «Тропа устойчивого туриста»</h2>
+        <div class="trail-box">
+            <div class="trail-header">
+                <span>📍 Маршрут</span>
+                <span id="stop-counter">Остановка 1 из 5</span>
+            </div>
+
+            <div class="stop-content active" id="stop1">
+                <h3>Остановка 1. «Начало пути — правила»</h3>
+                <p>Выберите 5 главных принципов для этого маршрута:</p>
+                <div class="task-list">
+                    ✅ «Не оставляй следов» <br>
+                    ✅ Тишина <br>
+                    ✅ Только официальные тропы <br>
+                    ✅ Уважение животных <br>
+                    ✅ Многоразовые вещи
+                </div>
+                <div class="focus-box"><b>Фокус:</b> Подготовка и правила поведения.</div>
+            </div>
+
+            <div class="stop-content" id="stop2">
+                <h3>Остановка 2. «Следы человека»</h3>
+                <p><b>Задание:</b> Найдите (мысленно) 3 примера негативного воздействия (мусор, кострища) и предложите, как уменьшить вред.</p>
+                <div class="focus-box"><b>Фокус:</b> Экологический анализ территории.</div>
+            </div>
+
+            <div class="stop-content" id="stop3">
+                <h3>Остановка 3. «Мир растений»</h3>
+                <p><b>Задание:</b> Почему нельзя рвать цветы и что происходит с почвой при вытаптывании травы?</p>
+                <div class="focus-box"><b>Фокус:</b> Биоразнообразие и защита зелёных зон.</div>
+            </div>
+
+            <div class="stop-content" id="stop4">
+                <h3>Остановка 4. «Тихий лес — дом животных»</h3>
+                <p><b>Задание:</b> Почему тишина — главный принцип? Почему нельзя кормить диких животных?</p>
+                <div class="focus-box"><b>Фокус:</b> Защита фауны и этика наблюдения.</div>
+            </div>
+
+            <div class="stop-content" id="stop5">
+                <h3>Остановка 5. «Экологичный выбор»</h3>
+                <p>Сравните Вариант А (одноразовая посуда, шум) и Вариант Б (многоразовая бутылка, тишина, пакет для мусора). Почему Б — это путь устойчивого туриста?</p>
+                <div class="focus-box"><b>Фокус:</b> Осознанное потребление.</div>
+            </div>
+
+            <div class="nav-controls">
+                <button class="btn-nav btn-prev" id="prevBtn" onclick="moveStop(-1)" disabled>Назад</button>
+                <button class="btn-nav btn-next" id="nextBtn" onclick="moveStop(1)">Вперед</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="homework">
+        <h2>🏠 Домашнее задание</h2>
+        <p>1. Мини-сочинение «Как я могу быть устойчивым туристом».</p>
+        <p>2. Чек-лист «10 правил устойчивого туризма».</p>
+    </section>
+
+    <section>
+        <h2 style="text-align: center;">🚦 Рефлексия и Результаты</h2>
+        
+        <div class="traffic-light-container">
+            <div class="light-item" onclick="saveStat('green')">
+                <div class="light-circle green"></div>
+                <span>Всё понял</span>
+            </div>
+            <div class="light-item" onclick="saveStat('yellow')">
+                <div class="light-circle yellow"></div>
+                <span>Нужен повтор</span>
+            </div>
+            <div class="light-item" onclick="saveStat('red')">
+                <div class="light-circle red"></div>
+                <span>Непонятно</span>
+            </div>
+        </div>
+
+        <div id="status-msg" style="text-align: center; height: 20px; color: var(--primary); font-weight: bold; margin-top: 10px;"></div>
+
+        <div style="max-width: 300px; margin: 30px auto;">
+            <canvas id="myChart"></canvas>
+        </div>
+
+        <div style="text-align: center;">
+            <button class="btn-clear" onclick="clearStats()">🗑️ Очистить данные</button>
+        </div>
+    </section>
+</div>
+
+<script>
+    // --- Логика Маршрута (оставлена как была) ---
+    let currentStop = 1;
+    const maxStops = 5;
+
+    function moveStop(dir) {
+        document.getElementById(`stop${currentStop}`).classList.remove('active');
+        currentStop += dir;
+        document.getElementById(`stop${currentStop}`).classList.add('active');
+
+        document.getElementById('prevBtn').disabled = (currentStop === 1);
+        const nextBtn = document.getElementById('nextBtn');
+        
+        if (currentStop === maxStops) {
+            nextBtn.innerText = "Завершить";
+            nextBtn.onclick = () => alert("Маршрут пройден!");
+        } else {
+            nextBtn.innerText = "Вперед";
+            nextBtn.onclick = () => moveStop(1);
+        }
+
+        document.getElementById('stop-counter').innerText = `Остановка ${currentStop} из ${maxStops}`;
+    }
+
+    // --- Логика Рефлексии (Chart.js + LocalStorage + No Alerts) ---
+    
+    // Загружаем данные или создаем нули
+    let stats = JSON.parse(localStorage.getItem('lesson4_stats')) || { green: 0, yellow: 0, red: 0 };
+    let chart;
+
+    function initChart() {
+        const ctx = document.getElementById('myChart').getContext('2d');
+        chart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Понял', 'Повтор', 'Вопросы'],
+                datasets: [{
+                    data: [stats.green, stats.yellow, stats.red],
+                    backgroundColor: ['#4caf50', '#ffeb3b', '#f44336'],
+                    borderWidth: 2
+                }]
+            },
+            options: { 
+                plugins: { legend: { position: 'bottom' } },
+                animation: { duration: 800 } // Плавная анимация
+            }
+        });
+    }
+
+    function saveStat(color) {
+        // 1. Обновляем данные
+        stats[color]++;
+        localStorage.setItem('lesson4_stats', JSON.stringify(stats));
+        
+        // 2. Обновляем график мгновенно
+        chart.data.datasets[0].data = [stats.green, stats.yellow, stats.red];
+        chart.update();
+
+        // 3. Показываем надпись вместо alert
+        const msg = document.getElementById('status-msg');
+        msg.innerText = "Ваш голос учтен!";
+        setTimeout(() => { msg.innerText = ""; }, 2000);
+    }
+
+    function clearStats() {
+        if(confirm('Вы уверены, что хотите сбросить статистику?')) {
+            stats = { green: 0, yellow: 0, red: 0 };
+            localStorage.removeItem('lesson4_stats');
+            chart.data.datasets[0].data = [0, 0, 0];
+            chart.update();
+            
+            const msg = document.getElementById('status-msg');
+            msg.innerText = "Статистика очищена";
+            setTimeout(() => { msg.innerText = ""; }, 2000);
+        }
+    }
+
+    // Запускаем график при старте
+    window.onload = initChart;
+</script>
+
+</body>
+</html>

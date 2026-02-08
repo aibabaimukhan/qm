@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Урок 16: Экологический мониторинг</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #00897b; /* Лабораторный бирюзовый */
+            --dark: #004d40;
+            --accent: #80cbc4;
+            --bg: #e0f2f1;
+            --white: #ffffff;
+            --danger: #e53935;
+            --success: #43a047;
+            --warning: #fdd835;
+        }
+
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            background-color: var(--bg); 
+            margin: 0; 
+            background-image: url('data:image/svg+xml;utf8,<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="1.5" fill="%23b2dfdb"/></svg>');
+        }
+
+        header { 
+            background: linear-gradient(135deg, var(--dark), var(--primary)); 
+            color: white; 
+            padding: 25px 5%; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border-radius: 0 0 20px 20px;
+        }
+
+        .back-btn { 
+            color: white; text-decoration: none; font-weight: bold; 
+            border: 2px solid rgba(255,255,255,0.7); padding: 8px 20px; 
+            border-radius: 25px; transition: 0.3s;
+        }
+        .back-btn:hover { background: white; color: var(--dark); }
+
+        .content { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+
+        section { 
+            background: var(--white); padding: 30px; border-radius: 20px; 
+            margin-bottom: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border-top: 5px solid var(--primary);
+        }
+
+        h2 { color: var(--dark); border-bottom: 2px solid var(--accent); padding-bottom: 10px; display: inline-block; margin-top: 0; }
+        h3 { color: var(--primary); margin-top: 20px; }
+
+        /* ИГРА 1: Индикаторы */
+        .match-game { display: flex; flex-direction: column; gap: 15px; }
+        .match-row { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+        .match-item { 
+            padding: 10px 20px; border: 2px solid #ccc; border-radius: 10px; 
+            cursor: pointer; background: white; transition: 0.2s; font-weight: bold;
+        }
+        .match-item.selected { border-color: var(--primary); background: #b2dfdb; }
+        .match-item.correct { border-color: var(--success); background: #c8e6c9; cursor: default; }
+        .match-item.wrong { border-color: var(--danger); background: #ffcdd2; }
+
+        /* ЛАБОРАТОРИЯ */
+        .lab-container { display: flex; flex-wrap: wrap; gap: 20px; }
+        .lab-card { 
+            flex: 1; min-width: 250px; background: #fafafa; border: 1px solid #ddd; 
+            padding: 20px; border-radius: 15px; border-left: 5px solid var(--primary);
+        }
+        .lab-display { 
+            background: #263238; color: #00e676; font-family: 'Courier New', monospace; 
+            padding: 15px; border-radius: 5px; margin: 15px 0; text-align: center; font-size: 1.2rem;
+        }
+        .lab-input { width: 80%; padding: 10px; border: 2px solid #ccc; border-radius: 5px; margin-bottom: 10px; font-size: 1rem; }
+        .btn-analyze { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; }
+        .btn-analyze:hover { background: var(--dark); }
+        .lab-result { margin-top: 15px; font-weight: bold; padding: 10px; border-radius: 5px; display: none; }
+
+        /* ВИДЕО */
+        .video-wrapper { border-radius: 15px; overflow: hidden; position: relative; padding-bottom: 56.25%; height: 0; margin: 20px 0; border: 4px solid var(--dark); }
+        .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+        /* РАБОЧИЕ ЛИСТЫ */
+        details.worksheet { background: var(--white); border: 1px solid #ccc; border-radius: 8px; margin-bottom: 15px; overflow: hidden; }
+        summary.worksheet-header { background: #b2dfdb; padding: 15px; cursor: pointer; font-weight: bold; color: var(--dark); list-style: none; display: flex; justify-content: space-between; align-items: center; }
+        summary.worksheet-header:hover { background: #80cbc4; }
+        summary.worksheet-header::after { content: '▼'; font-size: 0.8em; }
+        details[open] summary.worksheet-header::after { content: '▲'; }
+        .sheet-content { padding: 20px; border-top: 1px solid #eee; background: #fff; }
+        .sheet-input { border: none; border-bottom: 2px solid #aaa; background: #f9f9f9; width: 100%; padding: 5px; margin-bottom: 5px; }
+        table.sheet-table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 0.9rem; }
+        table.sheet-table th, table.sheet-table td { border: 1px solid #aaa; padding: 8px; text-align: left; vertical-align: top; }
+        table.sheet-table th { background: #eee; }
+        table.sheet-table input { width: 95%; border: none; background: transparent; padding: 5px; }
+        .checkbox-group label { display: block; margin: 5px 0; cursor: pointer; }
+        .btn-download { background: var(--dark); color: white; border: none; padding: 15px 30px; border-radius: 30px; cursor: pointer; width: 100%; font-size: 1.1rem; font-weight: bold; margin-top: 20px; transition: 0.3s; }
+        .btn-download:hover { background: var(--primary); transform: translateY(-2px); }
+
+        /* ТЕСТ */
+        .quiz-item { margin-bottom: 15px; padding: 15px; background: #e0f7fa; border-radius: 10px; border-left: 4px solid var(--primary); }
+        .btn-check { background: var(--primary); color: white; border: none; padding: 10px 25px; border-radius: 20px; cursor: pointer; }
+
+        /* РЕФЛЕКСИЯ */
+        .scientist-box { text-align: center; }
+        .scientist-input { width: 80%; padding: 15px; border: 2px solid var(--accent); border-radius: 10px; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="../index.html" class="back-btn">← Меню</a>
+    <div style="text-align: right">
+        <h1 style="margin:0; font-size: 1.5rem;">Экологический мониторинг</h1>
+        <small>Урок №16</small>
+    </div>
+</header>
+
+<div class="content">
+    
+    <section>
+        <h2>🔬 Пульс планеты</h2>
+        <p><i>Вопрос:</i> Как мы узнаем, что воздух чистый, а воду можно пить? На глаз это не определить. Нужны приборы!</p>
+        <div style="background: #b2dfdb; padding: 15px; border-radius: 10px; border-left: 5px solid var(--dark);">
+            <strong>Цель:</strong> Научиться работать с экологическими данными и делать выводы как учёные.
+        </div>
+    </section>
+
+    <section>
+        <h2>🧩 Игра «Угадай показатель»</h2>
+        <p>Соедините показатель с тем, что он измеряет (нажмите на пару):</p>
+        <div class="match-game">
+            <div class="match-row" id="indicators">
+                <div class="match-item" onclick="selectItem(this, 'ind')" data-pair="1">PM2.5 🌫️</div>
+                <div class="match-item" onclick="selectItem(this, 'ind')" data-pair="2">pH 🧪</div>
+                <div class="match-item" onclick="selectItem(this, 'ind')" data-pair="3">Децибел (дБ) 🔊</div>
+            </div>
+            <div class="match-row" id="meanings">
+                <div class="match-item" onclick="selectItem(this, 'mean')" data-pair="3">Шум</div>
+                <div class="match-item" onclick="selectItem(this, 'mean')" data-pair="1">Пыль в воздухе</div>
+                <div class="match-item" onclick="selectItem(this, 'mean')" data-pair="2">Кислотность воды</div>
+            </div>
+        </div>
+        <p id="matchMsg" style="text-align:center; height:20px; font-weight:bold;"></p>
+    </section>
+
+    <section>
+        <h2>📚 Что такое мониторинг?</h2>
+        <p>Это регулярное наблюдение за природой. Как врачи следят за здоровьем пациента, экологи следят за здоровьем Земли.</p>
+        
+        <div class="video-wrapper">
+            <iframe src="https://www.youtube.com/embed/5yZlVq2W9-I" title="Экомониторинг" frameborder="0" allowfullscreen></iframe>
+        </div>
+    </section>
+
+    <section>
+        <h2>🥼 Мини-Лаборатория</h2>
+        <p>Введите данные с карточек, чтобы проанализировать ситуацию.</p>
+        
+        <div class="lab-container">
+            <div class="lab-card">
+                <h3>💨 Воздух (PM2.5)</h3>
+                <p><i>Данные с датчика: 75 мкг/м³</i></p>
+                <div class="lab-display">75.0</div>
+                <label>Введите значение:</label>
+                <input type="number" id="airInput" class="lab-input" placeholder="Например: 75">
+                <button class="btn-analyze" onclick="analyze('air')">Анализ</button>
+                <div id="airResult" class="lab-result"></div>
+            </div>
+
+            <div class="lab-card">
+                <h3>💧 Вода (pH)</h3>
+                <p><i>Данные с датчика: 5.2</i></p>
+                <div class="lab-display">5.2</div>
+                <label>Введите значение:</label>
+                <input type="number" id="waterInput" class="lab-input" placeholder="Например: 5.2">
+                <button class="btn-analyze" onclick="analyze('water')">Анализ</button>
+                <div id="waterResult" class="lab-result"></div>
+            </div>
+
+            <div class="lab-card">
+                <h3>🔊 Шум (дБ)</h3>
+                <p><i>Уровень у дороги: 90 дБ</i></p>
+                <div class="lab-display">90</div>
+                <label>Введите значение:</label>
+                <input type="number" id="noiseInput" class="lab-input" placeholder="Например: 90">
+                <button class="btn-analyze" onclick="analyze('noise')">Анализ</button>
+                <div id="noiseResult" class="lab-result"></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="worksheets-container">
+        <h2>📝 Отчет мониторинга (Word)</h2>
+        <p>Заполните результаты и скачайте отчет.</p>
+
+        <details class="worksheet" open>
+            <summary class="worksheet-header">📊 ЛИСТ 1 — «Анализ данных»</summary>
+            <div class="sheet-content">
+                <table class="sheet-table">
+                    <tr><th>Показатель</th><th>Значение</th><th>Норма</th><th>Вывод</th></tr>
+                    <tr><td>PM2.5 (Воздух)</td><td><input type="text" id="w_air_val"></td><td>35</td><td><input type="text" id="w_air_res"></td></tr>
+                    <tr><td>pH (Вода)</td><td><input type="text" id="w_water_val"></td><td>6.5 - 8.5</td><td><input type="text" id="w_water_res"></td></tr>
+                    <tr><td>Шум (дБ)</td><td><input type="text" id="w_noise_val"></td><td>55</td><td><input type="text" id="w_noise_res"></td></tr>
+                </table>
+            </div>
+        </details>
+
+        <details class="worksheet">
+            <summary class="worksheet-header">🏫 ЛИСТ 2 — «Мониторинг колледжа»</summary>
+            <div class="sheet-content">
+                <div class="checkbox-group">
+                    <p>Что вы видите вокруг?</p>
+                    <label><input type="checkbox"> Мусор на территории</label>
+                    <label><input type="checkbox"> Шум от машин</label>
+                    <label><input type="checkbox"> Мало деревьев</label>
+                    <label><input type="checkbox"> Запах гари</label>
+                    <label><input type="checkbox"> Чисто и тихо</label>
+                </div>
+                <p>Общий вывод:</p>
+                <textarea class="sheet-area" placeholder="Состояние территории..."></textarea>
+            </div>
+        </details>
+
+        <details class="worksheet">
+            <summary class="worksheet-header">🛡️ ЛИСТ 4 — «Меры улучшения»</summary>
+            <div class="sheet-content">
+                <p>Предложи 3 меры для улучшения ситуации:</p>
+                <input type="text" class="sheet-input" placeholder="1. ..."><br>
+                <input type="text" class="sheet-input" placeholder="2. ..."><br>
+                <input type="text" class="sheet-input" placeholder="3. ...">
+            </div>
+        </details>
+
+        <button class="btn-download" onclick="generateAndDownloadWord()">📥 Скачать отчет (Word)</button>
+    </section>
+
+    <section>
+        <h2>🧠 Тест: Лаборант</h2>
+        <form id="quizForm">
+            <div class="quiz-item">1. Мониторинг — это: <br><input type="radio" name="q1" value="b"> Наблюдение за средой <input type="radio" name="q1" value="a"> Уборка мусора</div>
+            <div class="quiz-item">2. PM2.5 измеряет: <br><input type="radio" name="q2" value="a"> Мелкие частицы <input type="radio" name="q2" value="b"> Кислоту</div>
+            <div class="quiz-item">3. Кто проводит мониторинг? <br><input type="radio" name="q3" value="b"> Экологические службы <input type="radio" name="q3" value="a"> Туристы</div>
+            <div class="quiz-item">4. pH воды 5.2 это: <br><input type="radio" name="q4" value="b"> Кислая среда (плохо) <input type="radio" name="q4" value="a"> Норма</div>
+            <button type="button" class="btn-check" onclick="checkQuiz()">Проверить</button>
+            <p id="quiz-result" style="font-weight:bold; margin-top:10px;"></p>
+        </form>
+    </section>
+
+    <section>
+        <h2>👨‍🔬 Если бы я был учёным...</h2>
+        <div class="scientist-box">
+            <p>Напишите, какую экологическую проблему вы бы изучили в первую очередь:</p>
+            <textarea id="reflectionInput" class="scientist-input" placeholder="Я бы изучил..."></textarea>
+            <button class="btn-analyze" style="width:200px" onclick="saveReflection()">Сохранить мысль</button>
+            <p id="reflectionMsg" style="color:green; margin-top:10px;"></p>
+        </div>
+    </section>
+</div>
+
+<script>
+    // --- ИГРА 1: Индикаторы ---
+    let selectedInd = null;
+    let selectedMean = null;
+
+    function selectItem(el, type) {
+        // Сброс предыдущего выбора в этой категории
+        const container = type === 'ind' ? document.getElementById('indicators') : document.getElementById('meanings');
+        Array.from(container.children).forEach(child => {
+            if(!child.classList.contains('correct')) child.classList.remove('selected');
+        });
+
+        if(el.classList.contains('correct')) return;
+
+        el.classList.add('selected');
+        if(type === 'ind') selectedInd = el; else selectedMean = el;
+
+        checkMatch();
+    }
+
+    function checkMatch() {
+        if(selectedInd && selectedMean) {
+            if(selectedInd.dataset.pair === selectedMean.dataset.pair) {
+                // Верно
+                selectedInd.classList.add('correct'); selectedInd.classList.remove('selected');
+                selectedMean.classList.add('correct'); selectedMean.classList.remove('selected');
+                document.getElementById('matchMsg').innerText = "Верно!";
+                document.getElementById('matchMsg').style.color = "green";
+            } else {
+                // Ошибка
+                document.getElementById('matchMsg').innerText = "Не подходит...";
+                document.getElementById('matchMsg').style.color = "red";
+                setTimeout(() => {
+                    selectedInd.classList.remove('selected');
+                    selectedMean.classList.remove('selected');
+                    selectedInd = null; selectedMean = null;
+                }, 500);
+            }
+            // Сброс если верно, переменные обнуляем
+            if(selectedInd && selectedInd.classList.contains('correct')) {
+                selectedInd = null; selectedMean = null;
+            }
+        }
+    }
+
+    // --- ЛАБОРАТОРИЯ (Анализ) ---
+    function analyze(type) {
+        let val, resDiv, msg, color, statusText;
+        
+        if(type === 'air') {
+            val = parseFloat(document.getElementById('airInput').value);
+            resDiv = document.getElementById('airResult');
+            // Автозаполнение Word
+            document.getElementById('w_air_val').value = val;
+            
+            if(val > 35) { msg = "ОПАСНО! Высокое загрязнение."; color = "#ffcdd2"; statusText = "Опасно"; }
+            else { msg = "НОРМА. Воздух чистый."; color = "#c8e6c9"; statusText = "Норма"; }
+            document.getElementById('w_air_res').value = statusText;
+        } 
+        else if(type === 'water') {
+            val = parseFloat(document.getElementById('waterInput').value);
+            resDiv = document.getElementById('waterResult');
+            document.getElementById('w_water_val').value = val;
+
+            if(val < 6.5 || val > 8.5) { msg = "ПЛОХО! Вода кислая/щелочная."; color = "#ffcdd2"; statusText = "Загрязнение"; }
+            else { msg = "НОРМА. Вода в порядке."; color = "#c8e6c9"; statusText = "Норма"; }
+            document.getElementById('w_water_res').value = statusText;
+        }
+        else if(type === 'noise') {
+            val = parseFloat(document.getElementById('noiseInput').value);
+            resDiv = document.getElementById('noiseResult');
+            document.getElementById('w_noise_val').value = val;
+
+            if(val > 55) { msg = "ШУМНО! Вред для слуха."; color = "#ffcdd2"; statusText = "Превышение"; }
+            else { msg = "ТИХО. Комфортная среда."; color = "#c8e6c9"; statusText = "Норма"; }
+            document.getElementById('w_noise_res').value = statusText;
+        }
+
+        resDiv.style.display = "block";
+        resDiv.style.backgroundColor = color;
+        resDiv.innerText = msg;
+    }
+
+    // --- WORD ---
+    function generateAndDownloadWord() {
+        const container = document.getElementById('worksheets-container');
+        const clone = container.cloneNode(true);
+        clone.querySelector('button').remove(); clone.querySelector('h2').remove(); clone.querySelector('p').remove();
+        
+        clone.querySelectorAll('input, textarea').forEach(input => {
+            const span = document.createElement('span');
+            span.style.color = 'blue'; span.style.fontWeight = 'bold';
+            if (input.type === 'checkbox') span.innerText = input.checked ? '☒ ' : '☐ ';
+            else span.innerText = input.value || "______________________";
+            input.replaceWith(span);
+        });
+
+        clone.querySelectorAll('details').forEach(det => {
+            const title = det.querySelector('summary').innerText;
+            const div = document.createElement('div');
+            div.innerHTML = `<h3 style="background:#eee; border-bottom:1px solid #000; padding:5px;">${title}</h3>` + det.querySelector('.sheet-content').innerHTML;
+            det.replaceWith(div);
+        });
+
+        const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Отчет</title></head><body>";
+        const footer = "</body></html>";
+        const content = `<h1 style="text-align:center;color:#004d40">Протокол мониторинга</h1>` + clone.innerHTML;
+        
+        const blob = new Blob(['\ufeff', header + content + footer], { type: 'application/msword' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url; link.download = 'Мониторинг_Урок_16.doc';
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    }
+
+    // --- ТЕСТ ---
+    function checkQuiz() {
+        const form = document.getElementById('quizForm');
+        let score = 0;
+        if(form.q1.value === 'b') score++;
+        if(form.q2.value === 'a') score++;
+        if(form.q3.value === 'b') score++;
+        if(form.q4.value === 'b') score++;
+        const res = document.getElementById('quiz-result');
+        res.innerText = `Результат: ${score}/4. ` + (score===4 ? "Профессионально!" : "Повтори материал.");
+        res.style.color = score===4 ? "green" : "red";
+    }
+
+    // --- РЕФЛЕКСИЯ ---
+    function saveReflection() {
+        const txt = document.getElementById('reflectionInput').value;
+        if(txt) {
+            document.getElementById('reflectionMsg').innerText = "Записано в журнал наблюдений!";
+            setTimeout(() => document.getElementById('reflectionMsg').innerText = "", 2000);
+        }
+    }
+</script>
+
+</body>
+</html>
