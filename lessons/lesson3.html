@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Урок 3: Экотуризм — понятие и виды</title>
+    <style>
+        :root {
+            --primary: #2e7d32;
+            --dark: #1b5e20;
+            --accent: #4caf50;
+            --bg: #f0f7f0;
+            --white: #ffffff;
+            --blue: #0288d1;
+        }
+
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            background-color: var(--bg); 
+            margin: 0; 
+        }
+
+        header { 
+            background: linear-gradient(135deg, var(--dark), var(--primary)); 
+            color: white; 
+            padding: 25px 5%; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .back-btn { 
+            color: white; 
+            text-decoration: none; 
+            font-weight: bold; 
+            border: 2px solid rgba(255,255,255,0.7); 
+            padding: 8px 20px; 
+            border-radius: 25px; 
+            transition: 0.3s;
+        }
+
+        .back-btn:hover { background: white; color: var(--dark); border-color: white; }
+
+        .content { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+
+        section { 
+            background: var(--white); 
+            padding: 30px; 
+            border-radius: 15px; 
+            margin-bottom: 30px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        h2 { color: var(--dark); border-left: 5px solid var(--accent); padding-left: 15px; margin-top: 0; }
+
+        /* Стили для сортировки карточек */
+        .sorting-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .sort-column {
+            background: #f9fbf9;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px dashed #ccc;
+            min-height: 150px;
+        }
+        .sort-column h3 { text-align: center; font-size: 1rem; margin-top: 0; }
+        
+        .card-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            background: #eee;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .draggable-card {
+            background: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: grab;
+            border: 1px solid #ddd;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        /* Виды экотуризма */
+        .types-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .type-item {
+            background: var(--bg);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            color: var(--dark);
+            border: 1px solid var(--accent);
+        }
+
+        /* Видео */
+        .video-wrapper { 
+            border-radius: 15px; 
+            overflow: hidden; 
+            position: relative; padding-bottom: 56.25%; height: 0;
+            margin: 20px 0;
+        }
+        .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+        /* Тест */
+        .quiz-item { margin-bottom: 15px; padding: 15px; background: #fafafa; border-radius: 10px; }
+        .submit-quiz { 
+            background: var(--primary); color: white; border: none; padding: 15px; 
+            border-radius: 30px; cursor: pointer; width: 100%; font-size: 1.1em;
+        }
+
+        .homework { border-left: 8px solid var(--blue); background: #e3f2fd; }
+
+        @media (max-width: 600px) {
+            .sorting-area { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="../index.html" class="back-btn">← Меню</a>
+    <div style="text-align: right">
+        <h1 style="margin:0; font-size: 1.5rem;">Экотуризм: виды и принципы</h1>
+        <small>Урок №3</small>
+    </div>
+</header>
+
+<div class="content">
+    
+    <section>
+        <h2>🎯 О чем этот урок?</h2>
+        <p>Путешествовать можно по-разному. Можно оставить после себя горы мусора, а можно — только отпечатки своих ног. Сегодня мы узнаем, как стать настоящим экотуристом.</p>
+    </section>
+
+    <section>
+        <h2>1. Что такое Экотуризм?</h2>
+        <p><b>Экотуризм</b> — это ответственное путешествие в природные территории, которое способствует сохранению окружающей среды и улучшает благосостояние местных жителей.</p>
+        <p><strong>Главный принцип:</strong> «Возьми только фотографии, оставь только следы ног».</p>
+        
+        <div class="types-grid">
+            <div class="type-item">📸 Фото-туризм</div>
+            <div class="type-item">🦅 Орнитология</div>
+            <div class="type-item">🛶 Водный туризм</div>
+            <div class="type-item">🏡 Этно-туризм</div>
+            <div class="type-item">⛰️ Геотуризм</div>
+        </div>
+    </section>
+
+    <section>
+        <h2>2. Практикум: Сортировка качеств</h2>
+        <p>Распределите действия (нажмите на карточку, чтобы переместить её в нужную категорию):</p>
+        
+        <div class="card-pool" id="pool">
+            <div class="draggable-card" onclick="moveCard(this, 'eco')">Тихая фотоохота</div>
+            <div class="draggable-card" onclick="moveCard(this, 'usual')">Громкая музыка</div>
+            <div class="draggable-card" onclick="moveCard(this, 'eco')">Многоразовая посуда</div>
+            <div class="draggable-card" onclick="moveCard(this, 'usual')">Костер в любом месте</div>
+            <div class="draggable-card" onclick="moveCard(this, 'eco')">Следование тропам</div>
+            <div class="draggable-card" onclick="moveCard(this, 'usual')">Сбор редких цветов</div>
+        </div>
+
+        <div class="sorting-area">
+            <div class="sort-column" id="eco-col">
+                <h3>🌿 Экотурист</h3>
+            </div>
+            <div class="sort-column" id="usual-col">
+                <h3>🚗 Обычный турист</h3>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2>3. Погружение: Видеоурок</h2>
+        <div class="video-wrapper">
+            <iframe width="560" height="315" src="https://www.youtube.com/embed/TssT6OjINnA?si=bw1Jy5uy0j302sjv" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        </div>
+    </section>
+
+    <section>
+        <h2>4. Блиц-проверка знаний</h2>
+        <form id="ecoQuiz">
+            <div class="quiz-item">
+                <p><b>1. Главная цель экотуризма:</b></p>
+                <input type="radio" name="q1" value="a"> Развлечение любой ценой<br>
+                <input type="radio" name="q1" value="b"> Сохранение природы<br>
+                <input type="radio" name="q1" value="c"> Добыча ресурсов
+            </div>
+            <div class="quiz-item">
+                <p><b>2. Где безопаснее всего заниматься экотуризмом?</b></p>
+                <input type="radio" name="q2" value="a"> На заброшенных стройках<br>
+                <input type="radio" name="q2" value="b"> В заповедниках и на экотропах<br>
+                <input type="radio" name="q2" value="c"> В торговых центрах
+            </div>
+            <div class="quiz-item">
+                <p><b>3. Что из этого НЕ относится к экотуризму?</b></p>
+                <input type="radio" name="q3" value="a"> Наблюдение за птицами<br>
+                <input type="radio" name="q3" value="b"> Фотосъемка пейзажей<br>
+                <input type="radio" name="q3" value="c"> Запуск фейерверков в лесу
+            </div>
+            <button type="button" class="submit-quiz" onclick="checkEcoQuiz()">Узнать результат</button>
+            <p id="quiz-result" style="text-align:center; font-weight:bold; margin-top:15px;"></p>
+        </form>
+    </section>
+
+    <section class="homework">
+        <h2>🏠 Домашнее задание</h2>
+        <p>Выбери одно задание:</p>
+        <ul>
+            <li><b>Вариант 1:</b> Напиши список из 5 вещей для своего эко-рюкзака.</li>
+            <li><b>Вариант 2:</b> Найди фото любого красивого места в мире и напиши, какой вид экотуризма там можно организовать.</li>
+        </ul>
+    </section>
+</div>
+
+<script>
+    // Логика перемещения карточек
+    function moveCard(card, target) {
+        const ecoCol = document.getElementById('eco-col');
+        const usualCol = document.getElementById('usual-col');
+        
+        if (target === 'eco') {
+            ecoCol.appendChild(card);
+            card.style.borderColor = "#2e7d32";
+        } else {
+            usualCol.appendChild(card);
+            card.style.borderColor = "#ef5350";
+        }
+        card.onclick = null; // Отключаем клик после выбора
+    }
+
+    // Проверка теста
+    function checkEcoQuiz() {
+        const form = document.getElementById('ecoQuiz');
+        let score = 0;
+        if (form.q1.value === 'b') score++;
+        if (form.q2.value === 'b') score++;
+        if (form.q3.value === 'c') score++;
+        
+        const res = document.getElementById('quiz-result');
+        res.innerHTML = `Твой результат: ${score} из 3. ` + (score === 3 ? "Ты готов к экопутешествию! 🎒" : "Попробуй еще раз.");
+        res.style.color = score === 3 ? "var(--dark)" : "#d32f2f";
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Урок 10: Экологические игры</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #fbc02d; /* Желтый (игровой) */
+            --dark: #f57f17;
+            --accent: #fff9c4;
+            --bg: #fffde7;
+            --white: #ffffff;
+            --brown: #795548;
+            --green: #43a047;
+            --red: #e53935;
+        }
+
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            background-color: var(--bg); 
+            margin: 0; 
+            background-image: url('data:image/svg+xml;utf8,<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="2" fill="%23fdd835"/></svg>');
+        }
+
+        header { 
+            background: linear-gradient(135deg, var(--dark), var(--primary)); 
+            color: white; 
+            padding: 25px 5%; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border-radius: 0 0 20px 20px;
+        }
+
+        .back-btn { 
+            color: white; text-decoration: none; font-weight: bold; 
+            border: 2px solid rgba(255,255,255,0.7); padding: 8px 20px; 
+            border-radius: 25px; transition: 0.3s;
+        }
+        .back-btn:hover { background: white; color: var(--dark); }
+
+        .content { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+
+        section { 
+            background: var(--white); padding: 30px; border-radius: 20px; 
+            margin-bottom: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border: 1px solid #ffe082;
+        }
+
+        h2 { color: var(--dark); border-bottom: 3px solid var(--primary); padding-bottom: 10px; display: inline-block; margin-top: 0; }
+        h3 { color: var(--dark); margin-top: 20px; }
+
+        /* ИГРА 1: Правда/Миф */
+        .myth-grid { display: grid; gap: 15px; }
+        .myth-card { 
+            background: #f9f9f9; padding: 15px; border-radius: 10px; 
+            border: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; 
+        }
+        .myth-btns button { 
+            padding: 8px 15px; margin-left: 5px; border: none; border-radius: 5px; 
+            cursor: pointer; font-weight: bold; color: white; transition: 0.2s;
+        }
+        .btn-true { background: #4caf50; }
+        .btn-false { background: #f44336; }
+        .btn-true:hover { background: #388e3c; }
+        .btn-false:hover { background: #d32f2f; }
+        .myth-result { font-weight: bold; margin-left: 10px; display: none; }
+
+        /* ИГРА 2: Зеленый свет */
+        .light-game { text-align: center; background: #eceff1; padding: 20px; border-radius: 15px; }
+        .light-task { font-size: 1.5rem; font-weight: bold; margin-bottom: 20px; }
+        .light-controls { display: flex; justify-content: center; gap: 20px; }
+        .light-btn { 
+            width: 80px; height: 80px; border-radius: 50%; border: 4px solid #fff; 
+            cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .light-green { background: #4caf50; }
+        .light-red { background: #f44336; }
+        .light-btn:active { transform: scale(0.9); }
+
+        /* ИГРА 3: Цепочка (Drag&Drop) */
+        .chain-container { 
+            background: #e8f5e9; padding: 20px; border-radius: 15px; 
+            border: 2px dashed #43a047; min-height: 100px; display: flex; 
+            align-items: center; gap: 10px; overflow-x: auto;
+        }
+        .chain-pool { margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .chain-item { 
+            background: white; padding: 10px 15px; border-radius: 20px; 
+            border: 1px solid #43a047; cursor: grab; font-weight: bold; 
+        }
+        .chain-arrow { font-size: 1.5rem; color: #43a047; }
+
+        /* Рабочие листы */
+        details.worksheet { background: var(--white); border: 1px solid #ccc; border-radius: 8px; margin-bottom: 15px; overflow: hidden; }
+        summary.worksheet-header { background: #fff9c4; padding: 15px; cursor: pointer; font-weight: bold; color: var(--dark); list-style: none; display: flex; justify-content: space-between; align-items: center; }
+        summary.worksheet-header:hover { background: #fff59d; }
+        summary.worksheet-header::after { content: '▼'; font-size: 0.8em; }
+        details[open] summary.worksheet-header::after { content: '▲'; }
+        .sheet-content { padding: 20px; border-top: 1px solid #eee; background: #fff; }
+        .sheet-input { border: none; border-bottom: 2px solid #aaa; background: #f9f9f9; width: 200px; font-family: inherit; padding: 5px; }
+        textarea.sheet-area { width: 100%; height: 80px; border: 1px solid #ccc; border-radius: 5px; padding: 10px; margin-top: 5px; font-family: inherit; background: #fcfcfc; }
+        .btn-download { background: var(--brown); color: white; border: none; padding: 15px 30px; border-radius: 30px; cursor: pointer; width: 100%; font-size: 1.1rem; font-weight: bold; margin-top: 20px; }
+
+        /* Рефлексия (Canvas) */
+        #smileCanvas { border: 2px solid #ddd; border-radius: 10px; cursor: crosshair; background: #fff; }
+        .palette { display: flex; gap: 10px; justify-content: center; margin-bottom: 10px; }
+        .color-swatch { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .color-swatch.active { transform: scale(1.2); border-color: #333; }
+        .btn-action { background: var(--primary); color: white; border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; margin-top: 10px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="../index.html" class="back-btn">← Меню</a>
+    <div style="text-align: right">
+        <h1 style="margin:0; font-size: 1.5rem;">Экологические игры</h1>
+        <small>Урок №10</small>
+    </div>
+</header>
+
+<div class="content">
+    
+    <section>
+        <h2>🎲 Учимся играя</h2>
+        <p><i>Вопрос:</i> Можно ли спасти планету, просто играя в игры? Как вы думаете?</p>
+        <div style="background: #fff9c4; padding: 15px; border-radius: 10px; border-left: 5px solid var(--primary);">
+            <strong>Цель:</strong> Понять, как игры помогают формировать экологическую культуру.
+        </div>
+    </section>
+
+    <section>
+        <h2>❓ Игра «Правда или Миф?»</h2>
+        <div class="myth-grid">
+            <div class="myth-card">
+                <span>1. Пластиковая бутылка исчезнет за 1 год.</span>
+                <div class="myth-btns">
+                    <button class="btn-true" onclick="checkMyth(this, false)">Правда</button>
+                    <button class="btn-false" onclick="checkMyth(this, true)">Миф</button>
+                    <span class="myth-result"></span>
+                </div>
+            </div>
+            <div class="myth-card">
+                <span>2. Животных в дикой природе кормить нельзя.</span>
+                <div class="myth-btns">
+                    <button class="btn-true" onclick="checkMyth(this, true)">Правда</button>
+                    <button class="btn-false" onclick="checkMyth(this, false)">Миф</button>
+                    <span class="myth-result"></span>
+                </div>
+            </div>
+            <div class="myth-card">
+                <span>3. Громкий шум не мешает птицам.</span>
+                <div class="myth-btns">
+                    <button class="btn-true" onclick="checkMyth(this, false)">Правда</button>
+                    <button class="btn-false" onclick="checkMyth(this, true)">Миф</button>
+                    <span class="myth-result"></span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2>🚦 Игра «Светофор»</h2>
+        <p>Если действие хорошее — жми Зеленый. Если вредное — Красный.</p>
+        <div class="light-game">
+            <div class="light-task" id="lightTask">Задание загружается...</div>
+            <div class="light-controls">
+                <div class="light-btn light-green" onclick="checkLight(true)"></div>
+                <div class="light-btn light-red" onclick="checkLight(false)"></div>
+            </div>
+            <p id="lightMsg" style="font-weight:bold; height: 20px;"></p>
+        </div>
+    </section>
+
+    <section>
+        <h2>🔗 Игра «Экологическая цепочка»</h2>
+        <p>Перетащите элементы в серую зону, чтобы составить пищевую цепь (кто кого ест?):</p>
+        
+        <div class="chain-container" id="chainTarget" ondrop="drop(event)" ondragover="allowDrop(event)">
+            <span style="color:#aaa; margin-left:20px;">Перетащи сюда...</span>
+        </div>
+        
+        <div class="chain-pool">
+            <div class="chain-item" draggable="true" ondragstart="drag(event)" id="item1">🌱 Растение</div>
+            <div class="chain-item" draggable="true" ondragstart="drag(event)" id="item2">🐛 Гусеница</div>
+            <div class="chain-item" draggable="true" ondragstart="drag(event)" id="item3">🐦 Птица</div>
+            <div class="chain-item" draggable="true" ondragstart="drag(event)" id="item4">🦊 Лиса</div>
+            <div class="chain-item" draggable="true" ondragstart="drag(event)" id="item5">🦠 Бактерии</div>
+        </div>
+        <button class="btn-action" onclick="resetChain()">♻️ Сбросить цепочку</button>
+    </section>
+
+    <section id="worksheets-container">
+        <h2>📝 Рабочие листы (Творчество)</h2>
+        <p>Заполните задания и скачайте результат.</p>
+
+        <details class="worksheet" open>
+            <summary class="worksheet-header">🔍 ЛИСТ №1 — «Эко-детектив»</summary>
+            <div class="sheet-content">
+                <p>Представь: Поляна с мусором и кострищем. Найди 5 нарушений:</p>
+                <textarea class="sheet-area" placeholder="1. ... 2. ..."></textarea>
+                <p>Предложи решение:</p>
+                <textarea class="sheet-area"></textarea>
+            </div>
+        </details>
+
+        <details class="worksheet">
+            <summary class="worksheet-header">🎒 ЛИСТ №2 — «Эко-рюкзак»</summary>
+            <div class="sheet-content">
+                <h3>Что берем? (Отметь)</h3>
+                <div style="display:grid; grid-template-columns: 1fr 1fr;">
+                    <label><input type="checkbox"> Многораз. кружка</label>
+                    <label><input type="checkbox"> Пластик. тарелки</label>
+                    <label><input type="checkbox"> Пакет для мусора</label>
+                    <label><input type="checkbox"> Громкая колонка</label>
+                </div>
+                <h3>Замены:</h3>
+                <input type="text" class="sheet-input" placeholder="Вместо пластика..." style="width:100%"><br>
+                <input type="text" class="sheet-input" placeholder="Вместо пакетов..." style="width:100%">
+            </div>
+        </details>
+
+        <details class="worksheet">
+            <summary class="worksheet-header">🎲 ЛИСТ №4 — «Моя игра»</summary>
+            <div class="sheet-content">
+                <p>Название игры: <input type="text" class="sheet-input"></p>
+                <p>Тип: <input type="text" class="sheet-input" placeholder="подвижная/настольная"></p>
+                <h3>Правила игры:</h3>
+                <textarea class="sheet-area" placeholder="Как играть?"></textarea>
+                <h3>Цель игры (чему учит):</h3>
+                <textarea class="sheet-area"></textarea>
+            </div>
+        </details>
+
+        <button class="btn-download" onclick="generateAndDownloadWord()">💾 Скачать листы (Word)</button>
+    </section>
+
+    <section>
+        <h2 style="text-align: center;">🎨 Рефлексия: «Эко-смайлик»</h2>
+        <p style="text-align: center;">Нарисуйте смайлик вашего настроения:</p>
+        
+        <div style="text-align: center;">
+            <div class="palette">
+                <div class="color-swatch active" style="background:black" onclick="setColor('black')"></div>
+                <div class="color-swatch" style="background:#4caf50" onclick="setColor('#4caf50')"></div>
+                <div class="color-swatch" style="background:#f44336" onclick="setColor('#f44336')"></div>
+                <div class="color-swatch" style="background:#2196f3" onclick="setColor('#2196f3')"></div>
+            </div>
+            <canvas id="smileCanvas" width="300" height="200"></canvas>
+            <br>
+            <button class="btn-action" onclick="clearCanvas()">🗑️ Очистить</button>
+        </div>
+    </section>
+</div>
+
+<script>
+    // --- ИГРА 1: Мифы ---
+    function checkMyth(btn, isCorrect) {
+        const parent = btn.parentElement;
+        const resultSpan = parent.querySelector('.myth-result');
+        
+        // Блокируем кнопки
+        parent.querySelectorAll('button').forEach(b => b.disabled = true);
+        
+        resultSpan.style.display = "inline";
+        if(isCorrect) {
+            resultSpan.innerText = "Верно! ✅";
+            resultSpan.style.color = "green";
+        } else {
+            resultSpan.innerText = "Ошибка ❌";
+            resultSpan.style.color = "red";
+        }
+    }
+
+    // --- ИГРА 2: Светофор ---
+    const lightTasks = [
+        {t: "Кормить белок чипсами", ok: false},
+        {t: "Идти строго по тропе", ok: true},
+        {t: "Убрать чужой мусор", ok: true},
+        {t: "Врубить музыку в лесу", ok: false},
+        {t: "Срывать редкие цветы", ok: false}
+    ];
+    let currentTask = 0;
+
+    function renderLight() {
+        if(currentTask < lightTasks.length) {
+            document.getElementById('lightTask').innerText = lightTasks[currentTask].t;
+            document.getElementById('lightMsg').innerText = "";
+        } else {
+            document.getElementById('lightTask').innerText = "Игра окончена! 🎉";
+            document.querySelector('.light-controls').style.display = "none";
+        }
+    }
+    
+    function checkLight(userChoice) {
+        const correct = lightTasks[currentTask].ok; // true = Green
+        const msg = document.getElementById('lightMsg');
+        
+        if(userChoice === correct) {
+            msg.style.color = "green"; msg.innerText = "Правильно!";
+            setTimeout(() => { currentTask++; renderLight(); }, 1000);
+        } else {
+            msg.style.color = "red"; msg.innerText = "Неверно!";
+        }
+    }
+    renderLight();
+
+    // --- ИГРА 3: Цепочка ---
+    function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); }
+    function allowDrop(ev) { ev.preventDefault(); }
+    function drop(ev) {
+        ev.preventDefault();
+        const data = ev.dataTransfer.getData("text");
+        const el = document.getElementById(data);
+        const target = document.getElementById('chainTarget');
+        
+        // Удаляем подсказку если есть
+        if(target.querySelector('span')) target.querySelector('span').remove();
+        
+        // Добавляем стрелку если это не первый элемент
+        if(target.children.length > 0) {
+            const arrow = document.createElement('span');
+            arrow.className = 'chain-arrow'; arrow.innerText = '→';
+            target.appendChild(arrow);
+        }
+        
+        target.appendChild(el);
+    }
+    function resetChain() { location.reload(); } // Простой сброс
+
+    // --- WORD ---
+    function generateAndDownloadWord() {
+        const container = document.getElementById('worksheets-container');
+        const clone = container.cloneNode(true);
+        clone.querySelector('button').remove(); clone.querySelector('h2').remove(); clone.querySelector('p').remove();
+        
+        const inputs = clone.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            const span = document.createElement('span');
+            span.style.color = 'blue'; span.style.fontWeight = 'bold';
+            
+            if (input.type === 'checkbox') {
+                span.innerText = input.checked ? '☒ ' : '☐ ';
+            } else {
+                span.innerText = input.value || "______________________";
+            }
+            input.replaceWith(span);
+        });
+
+        const details = clone.querySelectorAll('details');
+        details.forEach(det => {
+            const title = det.querySelector('summary').innerText;
+            const div = document.createElement('div');
+            div.innerHTML = `<h3>${title}</h3>` + det.querySelector('.sheet-content').innerHTML;
+            det.replaceWith(div);
+        });
+
+        const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>ДЗ Урок 10</title></head><body>";
+        const footer = "</body></html>";
+        const content = `<h1 style="text-align:center;color:#f57f17">Творческие задания: Эко-игры</h1>` + clone.innerHTML;
+        
+        const blob = new Blob(['\ufeff', header + content + footer], { type: 'application/msword' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url; link.download = 'Моя_Игра_Урок_10.doc';
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    }
+
+    // --- РИСОВАЛКА (Canvas) ---
+    const canvas = document.getElementById('smileCanvas');
+    const ctx = canvas.getContext('2d');
+    let painting = false;
+    let currentColor = 'black';
+
+    function startPosition(e) { painting = true; draw(e); }
+    function finishedPosition() { painting = false; ctx.beginPath(); }
+    function draw(e) {
+        if(!painting) return;
+        ctx.lineWidth = 5;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = currentColor;
+
+        const rect = canvas.getBoundingClientRect();
+        ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    }
+
+    canvas.addEventListener('mousedown', startPosition);
+    canvas.addEventListener('mouseup', finishedPosition);
+    canvas.addEventListener('mousemove', draw);
+    
+    // Touch support for mobile
+    canvas.addEventListener('touchstart', (e) => {
+        const touch = e.touches[0];
+        const mouseEvent = new MouseEvent("mousedown", { clientX: touch.clientX, clientY: touch.clientY });
+        canvas.dispatchEvent(mouseEvent);
+    }, false);
+    canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const mouseEvent = new MouseEvent("mousemove", { clientX: touch.clientX, clientY: touch.clientY });
+        canvas.dispatchEvent(mouseEvent);
+    }, false);
+    canvas.addEventListener('touchend', () => {
+        const mouseEvent = new MouseEvent("mouseup", {});
+        canvas.dispatchEvent(mouseEvent);
+    }, false);
+
+    function setColor(color) { 
+        currentColor = color; 
+        document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+        event.target.classList.add('active');
+    }
+    function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+</script>
+
+</body>
+</html>

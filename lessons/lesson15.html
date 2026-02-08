@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Урок 15: Климатические изменения</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --cold: #0288d1; /* Холод */
+            --hot: #d32f2f;  /* Жара */
+            --earth: #388e3c; /* Природа */
+            --bg: #fbe9e7;
+            --white: #ffffff;
+            --text: #333;
+        }
+
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            line-height: 1.6; 
+            color: var(--text); 
+            background-color: var(--bg); 
+            margin: 0; 
+            background-image: linear-gradient(180deg, #e1f5fe 0%, #ffebee 100%);
+        }
+
+        header { 
+            background: linear-gradient(135deg, var(--cold), var(--hot)); 
+            color: white; 
+            padding: 25px 5%; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border-radius: 0 0 20px 20px;
+        }
+
+        .back-btn { 
+            color: white; text-decoration: none; font-weight: bold; 
+            border: 2px solid rgba(255,255,255,0.7); padding: 8px 20px; 
+            border-radius: 25px; transition: 0.3s;
+        }
+        .back-btn:hover { background: white; color: var(--hot); }
+
+        .content { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+
+        section { 
+            background: var(--white); padding: 30px; border-radius: 20px; 
+            margin-bottom: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border-top: 5px solid var(--hot);
+        }
+
+        h2 { color: var(--text); border-bottom: 3px solid var(--hot); padding-bottom: 10px; display: inline-block; margin-top: 0; }
+        h3 { color: var(--hot); margin-top: 20px; }
+
+        /* ИГРА 1: Погода или Климат */
+        .wc-game { text-align: center; background: #eceff1; padding: 20px; border-radius: 15px; }
+        .wc-statement { font-size: 1.5rem; font-weight: bold; margin-bottom: 20px; min-height: 60px; display: flex; align-items: center; justify-content: center; }
+        .wc-buttons { display: flex; gap: 20px; justify-content: center; }
+        .wc-btn { padding: 15px 30px; border: none; border-radius: 10px; font-size: 1.1rem; cursor: pointer; color: white; transition: 0.3s; width: 150px; }
+        .btn-weather { background: var(--cold); }
+        .btn-climate { background: var(--hot); }
+        .btn-weather:hover, .btn-climate:hover { transform: scale(1.05); opacity: 0.9; }
+        .wc-feedback { margin-top: 15px; font-weight: bold; height: 20px; }
+
+        /* ИГРА 2: Связи (Причина-Следствие) */
+        .pairs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; }
+        .pair-card {
+            background: white; border: 2px solid #ccc; padding: 15px; border-radius: 10px;
+            text-align: center; cursor: pointer; transition: 0.3s; user-select: none;
+        }
+        .pair-card:hover { border-color: var(--hot); }
+        .pair-card.selected { background: #fff3e0; border-color: var(--hot); transform: scale(1.05); }
+        .pair-card.matched { background: #c8e6c9; border-color: var(--earth); color: var(--earth); cursor: default; pointer-events: none; opacity: 0.7; }
+
+        /* ВИДЕО */
+        .video-wrapper { border-radius: 15px; overflow: hidden; position: relative; padding-bottom: 56.25%; height: 0; margin: 20px 0; border: 4px solid var(--text); }
+        .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+        /* РАБОЧИЕ ЛИСТЫ */
+        details.worksheet { background: var(--white); border: 1px solid #ccc; border-radius: 8px; margin-bottom: 15px; overflow: hidden; }
+        summary.worksheet-header { background: #ffebee; padding: 15px; cursor: pointer; font-weight: bold; color: var(--text); list-style: none; display: flex; justify-content: space-between; align-items: center; }
+        summary.worksheet-header:hover { background: #ffcdd2; }
+        summary.worksheet-header::after { content: '▼'; font-size: 0.8em; }
+        details[open] summary.worksheet-header::after { content: '▲'; }
+        .sheet-content { padding: 20px; border-top: 1px solid #eee; background: #fff; }
+        .sheet-input { border: none; border-bottom: 2px solid #aaa; background: #f9f9f9; width: 100%; padding: 5px; margin-bottom: 5px; }
+        table.sheet-table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 0.9rem; }
+        table.sheet-table th, table.sheet-table td { border: 1px solid #aaa; padding: 8px; text-align: left; vertical-align: top; }
+        table.sheet-table th { background: #eee; }
+        table.sheet-table input { width: 95%; border: none; background: transparent; padding: 5px; }
+        textarea.sheet-area { width: 100%; height: 60px; border: 1px solid #ccc; border-radius: 5px; padding: 10px; background: #fcfcfc; }
+        .btn-download { background: var(--hot); color: white; border: none; padding: 15px 30px; border-radius: 30px; cursor: pointer; width: 100%; font-size: 1.1rem; font-weight: bold; margin-top: 20px; transition: 0.3s; }
+        .btn-download:hover { background: #b71c1c; transform: translateY(-2px); }
+
+        /* ТЕСТ */
+        .quiz-item { margin-bottom: 15px; padding: 15px; background: #fffde7; border-radius: 10px; border-left: 4px solid #fbc02d; }
+        .btn-check { background: var(--text); color: white; border: none; padding: 10px 25px; border-radius: 20px; cursor: pointer; }
+
+        /* РЕФЛЕКСИЯ */
+        .action-box { display: flex; gap: 10px; margin-top: 20px; }
+        .action-btn { background: var(--earth); color: white; padding: 10px 20px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        .action-list { margin-top: 20px; }
+        .action-item { background: #e8f5e9; padding: 10px; border-radius: 5px; margin-bottom: 5px; border-left: 4px solid var(--earth); }
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="../index.html" class="back-btn">← Меню</a>
+    <div style="text-align: right">
+        <h1 style="margin:0; font-size: 1.5rem;">Климатические изменения</h1>
+        <small>Урок №15</small>
+    </div>
+</header>
+
+<div class="content">
+    
+    <section>
+        <h2>🌡️ Планета нагревается</h2>
+        <p><i>Вопрос:</i> Вы заметили, что зимы стали теплее, а лето жарче? Это случайность или закономерность?</p>
+        <div style="background: #ffebee; padding: 15px; border-radius: 10px; border-left: 5px solid var(--hot);">
+            <strong>Цель:</strong> Понять, почему меняется климат и что мы можем с этим сделать.
+        </div>
+    </section>
+
+    <section>
+        <h2>🌦️ Игра «Погода или Климат?»</h2>
+        <p>Прочитайте утверждение и выберите кнопку:</p>
+        <div class="wc-game">
+            <div class="wc-statement" id="wcText">Загрузка...</div>
+            <div class="wc-buttons">
+                <button class="wc-btn btn-weather" onclick="checkWC('weather')">☔ Погода</button>
+                <button class="wc-btn btn-climate" onclick="checkWC('climate')">🌍 Климат</button>
+            </div>
+            <p class="wc-feedback" id="wcMsg"></p>
+        </div>
+    </section>
+
+    <section>
+        <h2>📚 Причины и Последствия</h2>
+        <p><b>Парниковый эффект:</b> Газы (как CO₂) работают как стекло в теплице — пускают тепло, но не выпускают его обратно.</p>
+        <div class="video-wrapper">
+            <iframe width="560" height="315" src="https://www.youtube.com/embed/rgtIuUSeuDE?si=Dqwl7PQJyDUInrJI" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        </div>
+    </section>
+
+    <section>
+        <h2>🔗 Найди связь</h2>
+        <p>Найдите пары: <b>Причина</b> (красный) и её <b>Последствие</b> (синий). Кликайте по очереди.</p>
+        <div class="pairs-grid" id="pairsGame">
+            </div>
+        <p id="pairsMsg" style="text-align:center; font-weight:bold; height:20px; color:var(--earth);"></p>
+    </section>
+
+    <section id="worksheets-container">
+        <h2>📝 Рабочие листы (Word)</h2>
+        <p>Заполните данные и скачайте файл для домашнего задания.</p>
+
+        <details class="worksheet" open>
+            <summary class="worksheet-header">🔥 ЛИСТ 1 — «Причины и Последствия»</summary>
+            <div class="sheet-content">
+                <table class="sheet-table">
+                    <tr><th>Причина</th><th>Последствие</th><th>Влияние на людей</th></tr>
+                    <tr><td>Выбросы CO₂</td><td><input type="text" value="Парниковый эффект"></td><td><input type="text"></td></tr>
+                    <tr><td>Вырубка лесов</td><td><input type="text"></td><td><input type="text"></td></tr>
+                    <tr><td>Таяние льдов</td><td><input type="text" value="Повышение уровня моря"></td><td><input type="text"></td></tr>
+                </table>
+            </div>
+        </details>
+
+        <details class="worksheet">
+            <summary class="worksheet-header">🌦️ ЛИСТ 2 — «Погода/Климат»</summary>
+            <div class="sheet-content">
+                <p>Определи (напиши П или К):</p>
+                <div style="display:grid; gap:10px;">
+                    <label>«В июле обычно жарко»: <input type="text" class="sheet-input" style="width:50px"></label>
+                    <label>«Сегодня идёт снег»: <input type="text" class="sheet-input" style="width:50px"></label>
+                    <label>«Зимы стали теплее»: <input type="text" class="sheet-input" style="width:50px"></label>
+                </div>
+            </div>
+        </details>
+
+        <details class="worksheet">
+            <summary class="worksheet-header">🏘️ ЛИСТ 3 — «Адаптация»</summary>
+            <div class="sheet-content">
+                <p>Как нам приспособиться к изменениям? (5 способов)</p>
+                <textarea class="sheet-area" placeholder="Например: Сажать больше деревьев в городе..."></textarea>
+            </div>
+        </details>
+
+        <details class="worksheet">
+            <summary class="worksheet-header">👣 ЛИСТ 4 — «Мой эко-след»</summary>
+            <div class="sheet-content">
+                <table class="sheet-table">
+                    <tr><th>Привычка</th><th>Как сделать экологичнее?</th></tr>
+                    <tr><td>Транспорт</td><td><input type="text" placeholder="Ходить пешком"></td></tr>
+                    <tr><td>Электричество</td><td><input type="text" placeholder="Выключать свет"></td></tr>
+                    <tr><td>Питание</td><td><input type="text"></td></tr>
+                </table>
+            </div>
+        </details>
+
+        <button class="btn-download" onclick="generateAndDownloadWord()">📥 Скачать все листы (Word)</button>
+    </section>
+
+    <section>
+        <h2>🧠 Тест: Климатолог</h2>
+        <form id="quizForm">
+            <div class="quiz-item">1. Климат — это: <br><input type="radio" name="q1" value="b"> Средние условия за годы <input type="radio" name="q1" value="a"> Погода сейчас</div>
+            <div class="quiz-item">2. Парниковый газ: <br><input type="radio" name="q2" value="b"> Углекислый газ (CO₂) <input type="radio" name="q2" value="a"> Кислород</div>
+            <div class="quiz-item">3. Таяние ледников грозит: <br><input type="radio" name="q3" value="a"> Повышением уровня моря <input type="radio" name="q3" value="b"> Засухой</div>
+            <div class="quiz-item">4. Как помочь климату? <br><input type="radio" name="q4" value="b"> Экономить ресурсы <input type="radio" name="q4" value="a"> Сжигать больше угля</div>
+            <button type="button" class="btn-check" onclick="checkQuiz()">Проверить</button>
+            <p id="quiz-result" style="font-weight:bold; margin-top:10px;"></p>
+        </form>
+    </section>
+
+    <section>
+        <h2>🌱 Моё маленькое действие</h2>
+        <p>Закончи фразу: «Чтобы помочь планете, я могу...»</p>
+        <div class="action-box">
+            <input type="text" id="actionInput" class="sheet-input" placeholder="Напиши действие...">
+            <button class="action-btn" onclick="addAction()">Добавить</button>
+        </div>
+        <div id="actionList" class="action-list"></div>
+    </section>
+</div>
+
+<script>
+    // --- ИГРА 1: Погода/Климат ---
+    const wcData = [
+        { t: "Идет дождь", type: "weather" },
+        { t: "Зимы стали теплее", type: "climate" },
+        { t: "Завтра будет +20°C", type: "weather" },
+        { t: "В пустыне всегда сухо", type: "climate" },
+        { t: "Дует сильный ветер", type: "weather" }
+    ];
+    let wcIdx = 0;
+
+    function renderWC() {
+        if(wcIdx < wcData.length) {
+            document.getElementById('wcText').innerText = `«${wcData[wcIdx].t}»`;
+            document.getElementById('wcMsg').innerText = "";
+        } else {
+            document.getElementById('wcText').innerText = "Отлично! Тест пройден.";
+            document.querySelector('.wc-buttons').style.display = "none";
+        }
+    }
+    
+    function checkWC(choice) {
+        if(choice === wcData[wcIdx].type) {
+            document.getElementById('wcMsg').innerText = "Верно! ✅";
+            document.getElementById('wcMsg').style.color = "green";
+            wcIdx++;
+            setTimeout(renderWC, 1000);
+        } else {
+            document.getElementById('wcMsg').innerText = "Ошибка ❌";
+            document.getElementById('wcMsg').style.color = "red";
+        }
+    }
+    renderWC();
+
+    // --- ИГРА 2: Связи (Memory style) ---
+    const pairs = [
+        { id: 1, text: "Выбросы CO₂", type: "cause", match: 1 },
+        { id: 2, text: "Парниковый эффект", type: "effect", match: 1 },
+        { id: 3, text: "Таяние льдов", type: "cause", match: 2 },
+        { id: 4, text: "Подъем уровня моря", type: "effect", match: 2 },
+        { id: 5, text: "Вырубка лесов", type: "cause", match: 3 },
+        { id: 6, text: "Исчезновение видов", type: "effect", match: 3 }
+    ];
+    
+    // Перемешивание
+    pairs.sort(() => Math.random() - 0.5);
+
+    const grid = document.getElementById('pairsGame');
+    let selected = null;
+
+    pairs.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'pair-card';
+        card.innerText = (p.type === 'cause' ? '🔥 ' : '🌊 ') + p.text;
+        card.dataset.id = p.id;
+        card.dataset.match = p.match;
+        
+        card.onclick = () => {
+            if(card.classList.contains('matched')) return;
+
+            if(!selected) {
+                // Первое нажатие
+                selected = card;
+                card.classList.add('selected');
+            } else {
+                // Второе нажатие
+                if(selected === card) {
+                    selected.classList.remove('selected');
+                    selected = null;
+                    return;
+                }
+
+                if(selected.dataset.match === card.dataset.match) {
+                    // Совпадение
+                    selected.classList.remove('selected');
+                    selected.classList.add('matched');
+                    card.classList.add('matched');
+                    document.getElementById('pairsMsg').innerText = "Связь найдена!";
+                    selected = null;
+                } else {
+                    // Ошибка
+                    selected.classList.remove('selected');
+                    document.getElementById('pairsMsg').innerText = "Нет связи";
+                    selected = null;
+                }
+            }
+        };
+        grid.appendChild(card);
+    });
+
+    // --- WORD ---
+    function generateAndDownloadWord() {
+        const container = document.getElementById('worksheets-container');
+        const clone = container.cloneNode(true);
+        clone.querySelector('button').remove(); clone.querySelector('h2').remove(); clone.querySelector('p').remove();
+        
+        clone.querySelectorAll('input, textarea').forEach(input => {
+            const span = document.createElement('span');
+            span.style.color = 'blue'; span.style.fontWeight = 'bold';
+            span.innerText = input.value || "______________________";
+            input.replaceWith(span);
+        });
+
+        clone.querySelectorAll('details').forEach(det => {
+            const title = det.querySelector('summary').innerText;
+            const div = document.createElement('div');
+            div.innerHTML = `<h3 style="background:#eee; border-bottom:1px solid #000; padding:5px;">${title}</h3>` + det.querySelector('.sheet-content').innerHTML;
+            det.replaceWith(div);
+        });
+
+        const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Отчет</title></head><body>";
+        const footer = "</body></html>";
+        const content = `<h1 style="text-align:center;color:#d32f2f">Климатический отчет</h1>` + clone.innerHTML;
+        
+        const blob = new Blob(['\ufeff', header + content + footer], { type: 'application/msword' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url; link.download = 'Мой_Климат_Урок_15.doc';
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    }
+
+    // --- ТЕСТ ---
+    function checkQuiz() {
+        const form = document.getElementById('quizForm');
+        let score = 0;
+        if(form.q1.value === 'b') score++;
+        if(form.q2.value === 'b') score++;
+        if(form.q3.value === 'a') score++;
+        if(form.q4.value === 'b') score++;
+        const res = document.getElementById('quiz-result');
+        res.innerText = `Результат: ${score}/4. ` + (score===4 ? "Эксперт!" : "Изучи тему.");
+        res.style.color = score===4 ? "green" : "red";
+    }
+
+    // --- РЕФЛЕКСИЯ ---
+    function addAction() {
+        const input = document.getElementById('actionInput');
+        const text = input.value.trim();
+        if(text) {
+            const list = document.getElementById('actionList');
+            const item = document.createElement('div');
+            item.className = 'action-item';
+            item.innerText = "🌍 " + text;
+            list.prepend(item);
+            input.value = '';
+        }
+    }
+</script>
+
+</body>
+</html>

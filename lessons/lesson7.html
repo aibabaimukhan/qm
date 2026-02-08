@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Урок 7: Природные тропы</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #558b2f;
+            --dark: #33691e;
+            --accent: #aed581;
+            --bg: #f1f8e9;
+            --white: #ffffff;
+            --brown: #795548;
+            --path: #8d6e63;
+        }
+
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            background-color: var(--bg); 
+            margin: 0; 
+            background-image: url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><g fill="%23c5e1a5" fill-opacity="0.4"><path d="M10 10h10v10H10zM50 50h10v10H50z"/></g></svg>');
+        }
+
+        header { 
+            background: linear-gradient(135deg, var(--dark), var(--primary)); 
+            color: white; 
+            padding: 25px 5%; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border-radius: 0 0 20px 20px;
+        }
+
+        .back-btn { 
+            color: white; 
+            text-decoration: none; 
+            font-weight: bold; 
+            border: 2px solid rgba(255,255,255,0.7); 
+            padding: 8px 20px; 
+            border-radius: 25px; 
+            transition: 0.3s;
+        }
+        .back-btn:hover { background: white; color: var(--dark); border-color: white; }
+
+        .content { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+
+        section { 
+            background: var(--white); 
+            padding: 30px; 
+            border-radius: 20px; 
+            margin-bottom: 30px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border: 1px solid #dcedc8;
+        }
+
+        h2 { color: var(--dark); border-bottom: 3px solid var(--accent); padding-bottom: 10px; display: inline-block; margin-top: 0; }
+        h3 { color: var(--primary); margin-top: 20px; }
+
+        /* Атлас элементов тропы */
+        .elements-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
+        .flip-card { background-color: transparent; height: 220px; perspective: 1000px; cursor: pointer; }
+        .flip-card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-radius: 15px; }
+        .flip-card:hover .flip-card-inner { transform: rotateY(180deg); }
+        .flip-card-front, .flip-card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 15px; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        .flip-card-front { background: white; border: 2px solid var(--primary); color: var(--dark); }
+        .flip-card-front span { font-size: 3rem; margin-bottom: 10px; }
+        .flip-card-back { background: var(--primary); color: white; transform: rotateY(180deg); padding: 15px; box-sizing: border-box; }
+
+        /* Конструктор тропы */
+        .builder-area {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .toolbar {
+            flex: 1;
+            background: #f1f8e9;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px dashed #aed581;
+        }
+        .map-canvas {
+            flex: 2;
+            height: 300px;
+            background: #e8f5e9 url('data:image/svg+xml;utf8,<svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><circle cx="2" cy="2" r="1" fill="%23ccc"/></svg>');
+            border: 2px solid #33691e;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        .draggable-item {
+            background: white;
+            padding: 8px 12px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: grab;
+            border: 1px solid #ccc;
+            display: inline-block;
+            font-size: 0.9rem;
+        }
+        .map-point {
+            position: absolute;
+            cursor: move;
+            background: white;
+            padding: 5px;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            border: 2px solid var(--primary);
+            font-size: 1.5rem;
+        }
+
+        /* Видео */
+        .video-wrapper { border-radius: 15px; overflow: hidden; position: relative; padding-bottom: 56.25%; height: 0; margin: 20px 0; border: 4px solid var(--dark); }
+        .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+        /* Рабочие листы */
+        details.worksheet { background: var(--white); border: 1px solid #ccc; border-radius: 8px; margin-bottom: 15px; overflow: hidden; }
+        summary.worksheet-header { background: #f1f8e9; padding: 15px; cursor: pointer; font-weight: bold; color: var(--dark); list-style: none; display: flex; justify-content: space-between; align-items: center; }
+        summary.worksheet-header:hover { background: #dcedc8; }
+        summary.worksheet-header::after { content: '▼'; font-size: 0.8em; }
+        details[open] summary.worksheet-header::after { content: '▲'; }
+        .sheet-content { padding: 20px; border-top: 1px solid #eee; background: #fff; }
+        .sheet-input { border: none; border-bottom: 2px solid #aaa; background: #f9f9f9; width: 200px; font-family: inherit; padding: 5px; transition: 0.3s; }
+        .sheet-input:focus { border-bottom-color: var(--primary); outline: none; background: #e8f5e9; }
+        textarea.sheet-area { width: 100%; height: 80px; border: 1px solid #ccc; border-radius: 5px; padding: 10px; margin-top: 5px; font-family: inherit; resize: vertical; background: #fcfcfc; }
+        
+        .btn-download { background: var(--brown); color: white; border: none; padding: 15px 30px; border-radius: 30px; cursor: pointer; width: 100%; font-size: 1.1rem; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 5px 15px rgba(121, 85, 72, 0.4); transition: 0.3s; margin-top: 20px; }
+        .btn-download:hover { background: #5d4037; transform: translateY(-2px); }
+
+        /* Рефлексия */
+        .thoughts-cloud { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; padding: 20px; }
+        .thought-bubble { background: white; padding: 15px 25px; border-radius: 20px 20px 20px 0; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); cursor: pointer; border: 2px solid #ddd; transition: 0.2s; max-width: 250px; font-weight: bold; }
+        .thought-bubble:active { transform: scale(0.95); background: #eee; }
+        .thought-bubble:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-clear { background: #9e9e9e; color: white; border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; transition: 0.2s; margin-top: 20px; }
+        .btn-clear:hover { background: #757575; }
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="../index.html" class="back-btn">← Меню</a>
+    <div style="text-align: right">
+        <h1 style="margin:0; font-size: 1.5rem;">Природные тропы</h1>
+        <small>Урок №7</small>
+    </div>
+</header>
+
+<div class="content">
+    
+    <section>
+        <h2>🌲 Зачем тропы в лесу?</h2>
+        <p><i>Вопрос:</i> Почему мы ходим по специальным тропинкам, а не бежим напрямик через кусты?</p>
+        <div style="background: #e8f5e9; padding: 15px; border-radius: 10px; border-left: 5px solid var(--primary);">
+            <strong>Цель:</strong> Узнать, как экотропа спасает лес и учит людей.
+        </div>
+        <h3>📹 Видео: Что такое экологическая тропа?</h3>
+        <div class="video-wrapper">
+            <iframe width="560" height="315" src="https://www.youtube.com/embed/LwHqNfd0efY?si=MPrYGedjhSQ-zR26" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        </div>
+    </section>
+
+    <section>
+        <h2>🛠️ Из чего состоит тропа?</h2>
+        <p>Наведите курсор на карточку, чтобы узнать назначение элемента:</p>
+        <div class="elements-grid">
+            <div class="flip-card"><div class="flip-card-inner"><div class="flip-card-front"><span>🛑</span><h3>Аншлаг</h3></div><div class="flip-card-back"><p>Информационный щит в начале тропы. Рассказывает правила и показывает карту.</p></div></div></div>
+            <div class="flip-card"><div class="flip-card-inner"><div class="flip-card-front"><span>🌉</span><h3>Настил</h3></div><div class="flip-card-back"><p>Деревянный мостик. Защищает почву от вытаптывания туристами.</p></div></div></div>
+            <div class="flip-card"><div class="flip-card-inner"><div class="flip-card-front"><span>🔭</span><h3>Смотровая</h3></div><div class="flip-card-back"><p>Безопасная площадка для наблюдения за птицами или панорамой.</p></div></div></div>
+            <div class="flip-card"><div class="flip-card-inner"><div class="flip-card-front"><span>🎨</span><h3>Маркировка</h3></div><div class="flip-card-back"><p>Цветные метки на деревьях, чтобы туристы не заблудились.</p></div></div></div>
+        </div>
+    </section>
+
+    <section>
+        <h2>🗺️ Мини-игра «Построй свою тропу»</h2>
+        <p>Перетащите объекты на карту, чтобы создать маршрут. Нажмите на карту, чтобы поставить точку.</p>
+        <div class="builder-area">
+            <div class="toolbar">
+                <h4>Объекты:</h4>
+                <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="obj1">🌲 Лес</div>
+                <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="obj2">🌊 Ручей</div>
+                <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="obj3">🛑 Стенд</div>
+                <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="obj4">🏕️ Привал</div>
+                <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="obj5">🔭 Обзор</div>
+                <p><small>Кликните по карте, чтобы добавить объект.</small></p>
+                <button onclick="clearMap()" style="width:100%; margin-top:10px; padding:5px; cursor:pointer;">Очистить карту</button>
+            </div>
+            <div class="map-canvas" id="map" ondrop="drop(event)" ondragover="allowDrop(event)" onclick="addPointClick(event)">
+                </div>
+        </div>
+    </section>
+
+    <section id="worksheets-container">
+        <h2>📝 Рабочие листы (Заполните здесь)</h2>
+        <p>Впишите ответы и скачайте готовый Word-файл.</p>
+
+        <details class="worksheet" open>
+            <summary class="worksheet-header">📄 ЛИСТ №1 — «Что такое природная тропа?»</summary>
+            <div class="sheet-content">
+                <p>ФИО: <input type="text" class="sheet-input"></p>
+                <h3>1. Определение</h3>
+                <textarea class="sheet-area" placeholder="Природная тропа — это..."></textarea>
+                <h3>2. Для чего нужны тропы? (Отметь)</h3>
+                <div style="margin-top:10px;">
+                    <label><input type="checkbox"> Охрана природы</label>
+                    <label><input type="checkbox"> Сбор грибов где угодно</label>
+                    <label><input type="checkbox"> Наблюдение за животными</label>
+                    <label><input type="checkbox"> Безопасность</label>
+                </div>
+                <h3>3. Почему тропы спасают природу?</h3>
+                <textarea class="sheet-area"></textarea>
+            </div>
+        </details>
+
+        <details class="worksheet">
+            <summary class="worksheet-header">🛑 ЛИСТ №2 — «Элементы и Правила»</summary>
+            <div class="sheet-content">
+                <h3>1. Таблица элементов</h3>
+                <table style="width:100%; border-collapse:collapse; border:1px solid #ccc;">
+                    <tr><th style="border:1px solid #ccc; padding:5px;">Элемент</th><th style="border:1px solid #ccc;">Зачем нужен?</th></tr>
+                    <tr><td style="border:1px solid #ccc; padding:5px;">Аншлаг</td><td style="border:1px solid #ccc;"><input style="width:95%" type="text"></td></tr>
+                    <tr><td style="border:1px solid #ccc; padding:5px;">Мостик</td><td style="border:1px solid #ccc;"><input style="width:95%" type="text"></td></tr>
+                    <tr><td style="border:1px solid #ccc; padding:5px;">Смотровая</td><td style="border:1px solid #ccc;"><input style="width:95%" type="text"></td></tr>
+                </table>
+                <h3>2. Что НЕЛЬЗЯ делать на тропе? (5 запретов)</h3>
+                <textarea class="sheet-area" placeholder="1... 2..."></textarea>
+            </div>
+        </details>
+
+        <details class="worksheet">
+            <summary class="worksheet-header">🗺️ ЛИСТ №3 — «Мой проект тропы»</summary>
+            <div class="sheet-content">
+                <p>Название тропы: <input type="text" class="sheet-input"></p>
+                <h3>1. Описание маршрута (5-7 точек)</h3>
+                <textarea class="sheet-area" placeholder="Точка 1: Вход... Точка 2: ..."></textarea>
+                <h3>2. Кого можно встретить? (Флора и Фауна)</h3>
+                <textarea class="sheet-area"></textarea>
+                <h3>3. Правила моей тропы</h3>
+                <textarea class="sheet-area"></textarea>
+            </div>
+        </details>
+
+        <button class="btn-download" onclick="generateAndDownloadWord()">
+            💾 Скачать заполненные листы (Word)
+        </button>
+    </section>
+
+    <section>
+        <h2 style="text-align: center;">🗣️ Рефлексия: «Лесной шёпот»</h2>
+        <p style="text-align: center;">Выберите фразу, которая описывает ваш урок:</p>
+        
+        <div class="thoughts-cloud">
+            <div class="thought-bubble" onclick="vote(0)">«Я понял, зачем нужны тропы» 🛤️</div>
+            <div class="thought-bubble" onclick="vote(1)">«Мне понравилось проектировать» 📐</div>
+            <div class="thought-bubble" onclick="vote(2)">«Буду соблюдать правила в лесу» 🌳</div>
+            <div class="thought-bubble" onclick="vote(3)">«Хочу создать свою тропу» 🚧</div>
+        </div>
+        
+        <p id="vote-msg" style="text-align: center; color: var(--primary); font-weight: bold; margin-top: 10px; height: 20px;"></p>
+
+        <div style="max-width: 500px; margin: 20px auto;">
+            <canvas id="reflectionChart"></canvas>
+        </div>
+
+        <div style="text-align: center;">
+            <button class="btn-clear" onclick="clearVotes()">🗑️ Очистить голосование</button>
+        </div>
+    </section>
+</div>
+
+<script>
+    // --- КОНСТРУКТОР ТРОПЫ ---
+    let draggedItem = null;
+    function drag(ev) { draggedItem = ev.target.innerText; }
+    function allowDrop(ev) { ev.preventDefault(); }
+    function drop(ev) {
+        ev.preventDefault();
+        createPoint(ev.offsetX, ev.offsetY, draggedItem);
+    }
+    function addPointClick(ev) {
+        if(ev.target.classList.contains('map-canvas')) {
+            createPoint(ev.offsetX, ev.offsetY, "📍 Точка");
+        }
+    }
+    function createPoint(x, y, text) {
+        const map = document.getElementById('map');
+        const point = document.createElement('div');
+        point.className = 'map-point';
+        point.style.left = (x - 15) + 'px';
+        point.style.top = (y - 15) + 'px';
+        
+        // Emoji mapping
+        let content = text;
+        if(text.includes("Лес")) content = "🌲";
+        else if(text.includes("Ручей")) content = "🌊";
+        else if(text.includes("Стенд")) content = "🛑";
+        else if(text.includes("Привал")) content = "🏕️";
+        else if(text.includes("Обзор")) content = "🔭";
+        else content = "📍";
+        
+        point.innerText = content;
+        map.appendChild(point);
+    }
+    function clearMap() { document.getElementById('map').innerHTML = ''; }
+
+    // --- ГЕНЕРАЦИЯ WORD ---
+    function generateAndDownloadWord() {
+        const container = document.getElementById('worksheets-container');
+        const clone = container.cloneNode(true);
+        clone.querySelector('button').remove(); clone.querySelector('h2').remove(); clone.querySelector('p').remove();
+        
+        const originalInputs = container.querySelectorAll('input, textarea');
+        const clonedInputs = clone.querySelectorAll('input, textarea');
+        
+        for (let i = 0; i < originalInputs.length; i++) {
+            const org = originalInputs[i]; const cln = clonedInputs[i];
+            const span = document.createElement('span');
+            span.style.color = '#33691e'; span.style.fontWeight = 'bold';
+            
+            if (org.type === 'checkbox') { span.innerText = org.checked ? '☒ ' : '☐ '; cln.replaceWith(span); } 
+            else { let val = org.value || "______________________"; span.innerText = val; cln.replaceWith(span); }
+        }
+        
+        const details = clone.querySelectorAll('details');
+        details.forEach(det => {
+            const title = det.querySelector('summary').innerText;
+            const contentDiv = document.createElement('div');
+            contentDiv.innerHTML = `<h3 style="background:#eee;padding:5px;border-bottom:1px solid #000">${title}</h3>` + det.querySelector('.sheet-content').innerHTML;
+            contentDiv.style.marginBottom = "30px";
+            det.replaceWith(contentDiv);
+        });
+
+        const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Отчет</title></head><body>";
+        const footer = "</body></html>";
+        const styles = `<style>body { font-family: 'Times New Roman', serif; } table { width: 100%; border-collapse: collapse; margin: 10px 0; } td, th { border: 1px solid black; padding: 5px; } th { background-color: #f0f0f0; }</style>`;
+        
+        const blob = new Blob(['\ufeff', header + styles + `<h1 style="text-align:center">Отчет: Природные тропы</h1>` + clone.innerHTML + footer], { type: 'application/msword' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url; link.download = 'Моя_Тропа_Урок_7.doc'; document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    }
+
+    // --- ГОЛОСОВАНИЕ ---
+    const labels = ["Понял суть 🛤️", "Понравился проект 📐", "Буду соблюдать 🌳", "Хочу создать 🚧"];
+    let votes = JSON.parse(localStorage.getItem('lesson7_votes')) || [0, 0, 0, 0];
+    let myChart;
+
+    function initChart() {
+        const ctx = document.getElementById('reflectionChart').getContext('2d');
+        myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Голоса',
+                    data: votes,
+                    backgroundColor: ['#c5e1a5', '#aed581', '#81c784', '#66bb6a'],
+                    borderColor: '#33691e',
+                    borderWidth: 1
+                }]
+            },
+            options: { scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } }
+        });
+    }
+
+    function vote(index) {
+        votes[index]++;
+        localStorage.setItem('lesson7_votes', JSON.stringify(votes));
+        myChart.data.datasets[0].data = votes;
+        myChart.update();
+        const msg = document.getElementById('vote-msg');
+        msg.innerText = "Шёпот услышан...";
+        setTimeout(() => { msg.innerText = ""; }, 1500);
+    }
+
+    function clearVotes() {
+        if(confirm("Очистить голосование?")) {
+            votes = [0, 0, 0, 0];
+            localStorage.setItem('lesson7_votes', JSON.stringify(votes));
+            myChart.data.datasets[0].data = votes;
+            myChart.update();
+        }
+    }
+
+    window.onload = initChart;
+</script>
+
+</body>
+</html>

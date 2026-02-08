@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Урок 14: Загрязнение среды</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #455a64; /* Серо-синий (индустриальный) */
+            --dark: #263238;
+            --accent: #ff7043; /* Тревожный оранжевый */
+            --bg: #eceff1;
+            --white: #ffffff;
+            --green: #66bb6a; /* Надежда/Природа */
+            --water: #4fc3f7;
+            --air: #b0bec5;
+            --soil: #8d6e63;
+        }
+
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            background-color: var(--bg); 
+            margin: 0; 
+            background-image: url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M0 100 L100 0" stroke="%23cfd8dc" stroke-width="2"/></svg>');
+        }
+
+        header { 
+            background: linear-gradient(135deg, var(--dark), var(--primary)); 
+            color: white; 
+            padding: 25px 5%; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border-radius: 0 0 20px 20px;
+        }
+
+        .back-btn { 
+            color: white; text-decoration: none; font-weight: bold; 
+            border: 2px solid rgba(255,255,255,0.7); padding: 8px 20px; 
+            border-radius: 25px; transition: 0.3s;
+        }
+        .back-btn:hover { background: white; color: var(--dark); }
+
+        .content { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+
+        section { 
+            background: var(--white); padding: 30px; border-radius: 20px; 
+            margin-bottom: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border-top: 5px solid var(--primary);
+        }
+
+        h2 { color: var(--dark); border-bottom: 2px solid var(--accent); padding-bottom: 10px; display: inline-block; margin-top: 0; }
+        h3 { color: var(--primary); margin-top: 20px; }
+
+        /* ИГРА: Классификатор (Drag&Drop) */
+        .classifier-game { display: flex; flex-direction: column; gap: 20px; }
+        
+        .drop-zones { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+        .zone { 
+            width: 18%; min-width: 120px; min-height: 150px; 
+            border: 2px dashed #999; border-radius: 10px; 
+            display: flex; flex-direction: column; align-items: center; 
+            padding: 10px; transition: 0.3s; background: #fafafa;
+        }
+        .zone h4 { margin: 0 0 10px 0; text-align: center; }
+        
+        /* Цвета зон */
+        .zone-air { border-color: var(--air); background: #f5f5f5; }
+        .zone-water { border-color: var(--water); background: #e1f5fe; }
+        .zone-soil { border-color: var(--soil); background: #efebe9; }
+        .zone-noise { border-color: #ffca28; background: #fff8e1; }
+        .zone-light { border-color: #ab47bc; background: #f3e5f5; }
+
+        .draggables-pool { 
+            display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; 
+            background: #eee; padding: 15px; border-radius: 10px; min-height: 60px;
+        }
+        
+        .drag-item { 
+            background: white; padding: 8px 12px; border-radius: 20px; 
+            cursor: grab; box-shadow: 0 2px 5px rgba(0,0,0,0.2); font-weight: bold; font-size: 0.9rem;
+        }
+        .drag-item:active { cursor: grabbing; }
+
+        /* ВИДЕО */
+        .video-wrapper { border-radius: 15px; overflow: hidden; position: relative; padding-bottom: 56.25%; height: 0; margin: 20px 0; border: 4px solid var(--dark); }
+        .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+        /* ИГРА: Угадай фото (Слайдер) */
+        .photo-quiz { text-align: center; background: var(--bg); padding: 20px; border-radius: 15px; }
+        .photo-box { 
+            height: 200px; display: flex; align-items: center; justify-content: center; 
+            background: #cfd8dc; font-size: 3rem; margin-bottom: 15px; border-radius: 10px; 
+            border: 2px solid var(--primary);
+        }
+        .quiz-btns button { 
+            margin: 5px; padding: 8px 15px; border: none; border-radius: 5px; 
+            background: var(--white); cursor: pointer; font-weight: bold; border: 1px solid #ccc;
+        }
+        .quiz-btns button:hover { background: var(--accent); color: white; border-color: var(--accent); }
+
+        /* РАБОЧИЕ ЛИСТЫ */
+        details.worksheet { background: var(--white); border: 1px solid #ccc; border-radius: 8px; margin-bottom: 15px; overflow: hidden; }
+        summary.worksheet-header { background: #cfd8dc; padding: 15px; cursor: pointer; font-weight: bold; color: var(--dark); list-style: none; display: flex; justify-content: space-between; align-items: center; }
+        summary.worksheet-header:hover { background: #b0bec5; }
+        summary.worksheet-header::after { content: '▼'; font-size: 0.8em; }
+        details[open] summary.worksheet-header::after { content: '▲'; }
+        .sheet-content { padding: 20px; border-top: 1px solid #eee; background: #fff; }
+        .sheet-input { border: none; border-bottom: 2px solid #aaa; background: #f9f9f9; width: 100%; padding: 5px; margin-bottom: 5px; }
+        table.sheet-table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 0.9rem; }
+        table.sheet-table th, table.sheet-table td { border: 1px solid #aaa; padding: 8px; text-align: left; vertical-align: top; }
+        table.sheet-table th { background: #eee; }
+        table.sheet-table input { width: 95%; border: none; background: transparent; padding: 5px; }
+        textarea.sheet-area { width: 100%; height: 60px; border: 1px solid #ccc; border-radius: 5px; padding: 10px; background: #fcfcfc; }
+        .checkbox-group label { display: block; margin: 5px 0; cursor: pointer; }
+        
+        .btn-download { background: var(--accent); color: white; border: none; padding: 15px 30px; border-radius: 30px; cursor: pointer; width: 100%; font-size: 1.1rem; font-weight: bold; margin-top: 20px; transition: 0.3s; }
+        .btn-download:hover { background: var(--dark); transform: translateY(-2px); }
+
+        /* ТЕСТ */
+        .quiz-item { margin-bottom: 15px; padding: 15px; background: #eceff1; border-radius: 10px; border-left: 4px solid var(--accent); }
+        .btn-check { background: var(--dark); color: white; border: none; padding: 10px 25px; border-radius: 20px; cursor: pointer; }
+
+        /* РЕФЛЕКСИЯ */
+        .nature-chat { 
+            background: #e8f5e9; border: 2px solid var(--green); border-radius: 15px; 
+            padding: 20px; max-height: 300px; overflow-y: auto; margin-bottom: 10px;
+        }
+        .chat-bubble { 
+            background: white; padding: 10px 15px; border-radius: 20px 20px 20px 0; 
+            margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: fit-content;
+        }
+        .chat-bubble.nature { 
+            background: var(--green); color: white; border-radius: 20px 20px 0 20px; 
+            margin-left: auto; text-align: right; 
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="../index.html" class="back-btn">← Меню</a>
+    <div style="text-align: right">
+        <h1 style="margin:0; font-size: 1.5rem;">Загрязнение среды</h1>
+        <small>Урок №14</small>
+    </div>
+</header>
+
+<div class="content">
+    
+    <section>
+        <h2>🏭 Опасный след</h2>
+        <p><i>Вопрос:</i> Что больше всего вредит нашей планете прямо сейчас? Дым, пластик или безразличие?</p>
+        <div style="background: #eceff1; padding: 15px; border-radius: 10px; border-left: 5px solid var(--accent);">
+            <strong>Цель:</strong> Понять виды загрязнений и научиться их предотвращать.
+        </div>
+    </section>
+
+    <section>
+        <h2>📸 Что изображено?</h2>
+        <p>Я опишу проблему, а вы угадайте вид загрязнения.</p>
+        <div class="photo-quiz">
+            <div class="photo-box" id="quizImg">🏭</div>
+            <div class="quiz-btns">
+                <button onclick="checkImg('air')">Воздух</button>
+                <button onclick="checkImg('water')">Вода</button>
+                <button onclick="checkImg('plastic')">Пластик</button>
+            </div>
+            <p id="imgMsg" style="height:20px; font-weight:bold;"></p>
+        </div>
+    </section>
+
+    <section>
+        <h2>📚 Виды загрязнений</h2>
+        <div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:10px;">
+            <div style="min-width:200px; background:#b0bec5; padding:15px; border-radius:10px; color:white;"><b>💨 Воздух</b><br>Выбросы, авто</div>
+            <div style="min-width:200px; background:#4fc3f7; padding:15px; border-radius:10px; color:white;"><b>💧 Вода</b><br>Стоки, пластик</div>
+            <div style="min-width:200px; background:#8d6e63; padding:15px; border-radius:10px; color:white;"><b>🌱 Почва</b><br>Свалки, яды</div>
+            <div style="min-width:200px; background:#ffca28; padding:15px; border-radius:10px; color:white;"><b>🔊 Шум</b><br>Транспорт, музыка</div>
+        </div>
+        <div class="video-wrapper">
+            <iframe width="560" height="315" src="https://www.youtube.com/embed/9HcP4ovlTLM?si=fkdG8YKN2elIsFMI" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        </div>
+    </section>
+
+    <section>
+        <h2>♻️ Сортировочная станция</h2>
+        <p>Распределите источники загрязнения по контейнерам:</p>
+        
+        <div class="classifier-game">
+            <div class="draggables-pool" id="pool">
+                <div class="drag-item" draggable="true" ondragstart="drag(event)" id="d1" data-type="air">🚗 Выхлопы</div>
+                <div class="drag-item" draggable="true" ondragstart="drag(event)" id="d2" data-type="water">🛢️ Нефть</div>
+                <div class="drag-item" draggable="true" ondragstart="drag(event)" id="d3" data-type="soil">🔋 Батарейки</div>
+                <div class="drag-item" draggable="true" ondragstart="drag(event)" id="d4" data-type="noise">🔊 Стройка</div>
+                <div class="drag-item" draggable="true" ondragstart="drag(event)" id="d5" data-type="light">💡 Реклама</div>
+                <div class="drag-item" draggable="true" ondragstart="drag(event)" id="d6" data-type="water">🧴 Стоки</div>
+                <div class="drag-item" draggable="true" ondragstart="drag(event)" id="d7" data-type="air">🏭 Дым</div>
+            </div>
+
+            <div class="drop-zones">
+                <div class="zone zone-air" ondrop="drop(event, 'air')" ondragover="allowDrop(event)"><h4>Воздух</h4></div>
+                <div class="zone zone-water" ondrop="drop(event, 'water')" ondragover="allowDrop(event)"><h4>Вода</h4></div>
+                <div class="zone zone-soil" ondrop="drop(event, 'soil')" ondragover="allowDrop(event)"><h4>Почва</h4></div>
+                <div class="zone zone-noise" ondrop="drop(event, 'noise')" ondragover="allowDrop(event)"><h4>Шум</h4></div>
+                <div class="zone zone-light" ondrop="drop(event, 'light')" ondragover="allowDrop(event)"><h4>Свет</h4></div>
+            </div>
+            <p id="gameMsg" style="text-align:center; font-weight:bold; height:20px;"></p>
+        </div>
+    </section>
+
+    <section id="worksheets-container">
+        <h2>📝 Анализ и Решения (Word)</h2>
+        <p>Заполните таблицы и скачайте результат.</p>
+
+        <details class="worksheet" open>
+            <summary class="worksheet-header">📄 ЛИСТ 1 — «Определи вид»</summary>
+            <div class="sheet-content">
+                <table class="sheet-table">
+                    <tr><th>Ситуация</th><th>Вид загрязнения</th><th>Последствия</th></tr>
+                    <tr><td>Мусор в лесу</td><td><input type="text"></td><td><input type="text"></td></tr>
+                    <tr><td>Дым машин</td><td><input type="text"></td><td><input type="text"></td></tr>
+                    <tr><td>Громкая музыка</td><td><input type="text"></td><td><input type="text"></td></tr>
+                    <tr><td>Стоки в реку</td><td><input type="text"></td><td><input type="text"></td></tr>
+                </table>
+            </div>
+        </details>
+
+        <details class="worksheet">
+            <summary class="worksheet-header">💡 ЛИСТ 2 — «Мои решения»</summary>
+            <div class="sheet-content">
+                <p>Как уменьшить загрязнение воздуха?</p>
+                <textarea class="sheet-area" placeholder="Например: Ходить пешком..."></textarea>
+                <p>Как уменьшить загрязнение воды?</p>
+                <textarea class="sheet-area"></textarea>
+            </div>
+        </details>
+
+        <details class="worksheet">
+            <summary class="worksheet-header">🏙️ ЛИСТ 3 — «Анализ территории»</summary>
+            <div class="sheet-content">
+                <div class="checkbox-group">
+                    <p>Что я вижу вокруг колледжа/дома?</p>
+                    <label><input type="checkbox"> Мусор на земле</label>
+                    <label><input type="checkbox"> Выхлопы машин</label>
+                    <label><input type="checkbox"> Шум</label>
+                    <label><input type="checkbox"> Чистые газоны</label>
+                    <label><input type="checkbox"> Урны для мусора</label>
+                </div>
+                <p>Вывод:</p>
+                <textarea class="sheet-area"></textarea>
+            </div>
+        </details>
+
+        <button class="btn-download" onclick="generateAndDownloadWord()">📥 Скачать отчет (Word)</button>
+    </section>
+
+    <section>
+        <h2>🧠 Тест: Эко-эксперт</h2>
+        <form id="quizForm">
+            <div class="quiz-item">1. Что загрязняет воздух? <br><input type="radio" name="q1" value="b"> Дым машин <input type="radio" name="q1" value="a"> Мусор в реке</div>
+            <div class="quiz-item">2. Пластик разлагается: <br><input type="radio" name="q2" value="c"> 100-500 лет <input type="radio" name="q2" value="a"> 1 год</div>
+            <div class="quiz-item">3. Шумовое загрязнение это: <br><input type="radio" name="q3" value="b"> Громкие звуки <input type="radio" name="q3" value="a"> Яркий свет</div>
+            <div class="quiz-item">4. Как помочь воздуху? <br><input type="radio" name="q4" value="a"> Общественный транспорт <input type="radio" name="q4" value="b"> Сжигать листья</div>
+            <button type="button" class="btn-check" onclick="checkQuiz()">Проверить</button>
+            <p id="quiz-result" style="font-weight:bold; margin-top:10px;"></p>
+        </form>
+    </section>
+
+    <section>
+        <h2>🍃 Если бы я был Природой...</h2>
+        <p>Напиши сообщение от имени Природы. Что бы она сказала людям?</p>
+        <div class="nature-chat" id="chatBox">
+            <div class="chat-bubble">Человек, я устала от дыма...</div>
+        </div>
+        <div style="display:flex; gap:10px;">
+            <input type="text" id="chatInput" class="sheet-input" placeholder="Введите сообщение...">
+            <button class="btn-check" onclick="sendMessage()">Отправить</button>
+        </div>
+    </section>
+</div>
+
+<script>
+    // --- ИГРА 1: Фото-квиз ---
+    const quizData = [
+        { icon: "🏭", type: "air", correct: "Воздух! Выбросы заводов." },
+        { icon: "🥤", type: "plastic", correct: "Пластик! Вечный мусор." },
+        { icon: "🛢️", type: "water", correct: "Вода! Разлив нефти." }
+    ];
+    let quizIdx = 0;
+
+    function checkImg(choice) {
+        const current = quizData[quizIdx];
+        const msg = document.getElementById('imgMsg');
+        
+        if(choice === current.type) {
+            msg.innerText = current.correct;
+            msg.style.color = "green";
+            quizIdx = (quizIdx + 1) % quizData.length;
+            setTimeout(() => {
+                document.getElementById('quizImg').innerText = quizData[quizIdx].icon;
+                msg.innerText = "";
+            }, 1500);
+        } else {
+            msg.innerText = "Ошибка. Подумай еще.";
+            msg.style.color = "red";
+        }
+    }
+
+    // --- ИГРА 2: Классификатор (Drag & Drop) ---
+    function drag(ev) {
+        ev.dataTransfer.setData("id", ev.target.id);
+        ev.dataTransfer.setData("type", ev.target.dataset.type);
+    }
+    function allowDrop(ev) { ev.preventDefault(); }
+    function drop(ev, zoneType) {
+        ev.preventDefault();
+        const id = ev.dataTransfer.getData("id");
+        const itemType = ev.dataTransfer.getData("type");
+        const el = document.getElementById(id);
+        const msg = document.getElementById('gameMsg');
+
+        if(itemType === zoneType) {
+            ev.currentTarget.appendChild(el);
+            el.style.background = "#c8e6c9"; // Green
+            el.draggable = false;
+            msg.innerText = "Верно! ✅";
+            msg.style.color = "green";
+        } else {
+            msg.innerText = "Неверный контейнер! ❌";
+            msg.style.color = "red";
+        }
+    }
+
+    // --- WORD ---
+    function generateAndDownloadWord() {
+        const container = document.getElementById('worksheets-container');
+        const clone = container.cloneNode(true);
+        clone.querySelector('button').remove(); clone.querySelector('h2').remove(); clone.querySelector('p').remove();
+        
+        clone.querySelectorAll('input, textarea').forEach(input => {
+            const span = document.createElement('span');
+            span.style.color = 'blue'; span.style.fontWeight = 'bold';
+            if (input.type === 'checkbox') span.innerText = input.checked ? '☒ ' : '☐ ';
+            else span.innerText = input.value || "______________________";
+            input.replaceWith(span);
+        });
+
+        clone.querySelectorAll('details').forEach(det => {
+            const title = det.querySelector('summary').innerText;
+            const div = document.createElement('div');
+            div.innerHTML = `<h3 style="background:#eee; border-bottom:1px solid #000; padding:5px;">${title}</h3>` + det.querySelector('.sheet-content').innerHTML;
+            det.replaceWith(div);
+        });
+
+        const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Отчет</title></head><body>";
+        const footer = "</body></html>";
+        const content = `<h1 style="text-align:center;color:#455a64">Анализ загрязнений</h1>` + clone.innerHTML;
+        
+        const blob = new Blob(['\ufeff', header + content + footer], { type: 'application/msword' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url; link.download = 'Эко_Анализ.doc';
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    }
+
+    // --- ТЕСТ ---
+    function checkQuiz() {
+        const form = document.getElementById('quizForm');
+        let score = 0;
+        if(form.q1.value === 'b') score++;
+        if(form.q2.value === 'c') score++;
+        if(form.q3.value === 'b') score++;
+        if(form.q4.value === 'a') score++;
+        const res = document.getElementById('quiz-result');
+        res.innerText = `Результат: ${score}/4. ` + (score===4 ? "Отлично!" : "Повтори тему.");
+        res.style.color = score===4 ? "green" : "red";
+    }
+
+    // --- РЕФЛЕКСИЯ ---
+    function sendMessage() {
+        const input = document.getElementById('chatInput');
+        const text = input.value.trim();
+        if(text) {
+            const box = document.getElementById('chatBox');
+            const bubble = document.createElement('div');
+            bubble.className = 'chat-bubble nature';
+            bubble.innerText = text;
+            box.appendChild(bubble);
+            input.value = '';
+            box.scrollTop = box.scrollHeight; // Auto scroll
+        }
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Основы Экологии: Учебный курс</title>
+    <style>
+        :root {
+            --forest-green: #1b5e20;
+            --leaf-green: #4caf50;
+            --soft-white: #f9fbf9; /* Основной светлый оттенок */
+            --bg-tint: #e8f5e9;    /* Легкий зеленоватый оттенок для градиента */
+            --stone-grey: #455a64;
+            --footer-bg: #263238;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        /* --- СТИЛИ ПРЕЛОАДЕРА --- */
+        #preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--soft-white);
+            z-index: 9999; /* Поверх всего */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease, visibility 0.5s; /* Плавное исчезновение */
+        }
+
+        /* Скрытие прелоадера */
+        body.loaded #preloader {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none; /* Чтобы сквозь него можно было кликать, когда он прозрачный */
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #e0e0e0; /* Светло-серый круг */
+            border-top: 5px solid var(--leaf-green); /* Зеленая вращающаяся часть */
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* ------------------------ */
+
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            color: var(--stone-grey);
+            line-height: 1.6;
+
+            /* АНИМИРОВАННЫЙ ФОН */
+            /* Создаем градиент из основного белого в легкий зеленоватый и обратно */
+            background: linear-gradient(-45deg, var(--soft-white), var(--bg-tint), var(--soft-white), var(--bg-tint));
+            background-size: 400% 400%; /* Увеличиваем фон для движения */
+            animation: gradientBG 15s ease infinite; /* Запускаем анимацию */
+        }
+
+        /* Анимация движения фона */
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+
+        header {
+            /* Начальная картинка - первая из массива скрипта, чтобы совпадало */
+            background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), 
+                              url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1200&q=80');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+            flex-shrink: 0;
+            /* Плавный переход при смене картинки */
+            transition: background-image 1s ease-in-out;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: -40px auto 40px;
+            padding: 0 20px;
+            flex: 1 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .course-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            /* Немного увеличил тень, чтобы лучше выделялась на анимированном фоне */
+            box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+        }
+
+        h1 { margin: 0; font-size: 2.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        h2 { color: var(--forest-green); border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 0; }
+
+        .lesson-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            list-style: none;
+            padding: 0;
+            margin-top: 25px;
+        }
+
+        .lesson-item {
+            border: 1px solid #e8f0e8;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            background: #fff;
+            display: flex;
+        }
+
+        .lesson-item:hover {
+            border-color: var(--leaf-green);
+            background: #f1f8f1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .lesson-link {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            text-decoration: none;
+            color: var(--stone-grey);
+            font-weight: 500;
+            width: 100%;
+        }
+
+        .lesson-num {
+            background: var(--forest-green);
+            color: white;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-right: 15px;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        footer {
+            flex-shrink: 0;
+            background-color: var(--footer-bg);
+            color: #cfd8dc;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .author-name {
+            color: #fff;
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .copyright {
+            font-size: 0.85rem;
+            opacity: 0.6;
+        }
+
+        @media (max-width: 600px) {
+            header { padding: 50px 15px; }
+            h1 { font-size: 1.8rem; }
+            .lesson-grid { grid-template-columns: 1fr; }
+            .container { margin-top: 10px; }
+            .course-card { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="preloader">
+    <div class="spinner"></div>
+</div>
+
+<header id="header-bg">
+    <h1>Основы Экологии</h1>
+    <p>Интерактивный образовательный портал</p>
+</header>
+
+<div class="container">
+    <div class="course-card">
+        <h2>Программа занятий</h2>
+        <ul class="lesson-grid" id="main-grid">
+            <script>
+                const topics = [
+                    "Введение в экологию", "Экологическая культура", "Экотуризм: понятие и виды",
+                    "Принципы устойчивого туризма", "Роль экопросвещения", "Флора и фауна родного края",
+                    "Природные тропы", "Организация экопохода", "Минимизация воздействия",
+                    "Экологические игры", "Практикум: наблюдение", "Охраняемые территории",
+                    "Волонтёрство", "Загрязнение среды", "Климатические изменения",
+                    "Экологический мониторинг", "Сортировка отходов", "Ресурсосбережение",
+                    "Проектирование экопроектов", "Экотурмаршруты мира", "Этика взаимодействия",
+                    "Экология и здоровье", "Итоговое занятие", "Защита проектов"
+                ];
+
+                const grid = document.getElementById('main-grid');
+
+                topics.forEach((topic, i) => {
+                    const num = i + 1;
+                    const li = document.createElement('li');
+                    li.className = 'lesson-item';
+                    li.innerHTML = `
+                        <a href="lessons/lesson${num}.html" class="lesson-link">
+                            <span class="lesson-num">${num}</span>
+                            <span>${topic}</span>
+                        </a>
+                    `;
+                    grid.appendChild(li);
+                });
+            </script>
+        </ul>
+    </div>
+</div>
+
+<footer>
+    <div class="footer-content">
+        <span class="author-name">Автор: Кымбат Назымбековна</span>
+        <p>Учебный ресурс по экологии и устойчивому развитию</p>
+        <div class="copyright">
+            &copy; 2026 Все права защищены
+        </div>
+    </div>
+</footer>
+
+<script>
+    // 1. Скрипт Прелоадера
+    // Ждем полной загрузки страницы (включая картинки)
+    window.addEventListener('load', function () {
+        // Даем небольшую задержку, чтобы пользователь точно увидел прелоадер, если сайт загрузился мгновенно
+        setTimeout(function() {
+             // Добавляем класс 'loaded' к body, который активирует CSS для скрытия прелоадера
+            document.body.classList.add('loaded');
+        }, 500); // задержка 0.5 секунды
+    });
+
+
+    // 2. Скрипт смены фона шапки
+    const images = [
+        'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1200&q=80', // Лес (исходная)
+        // 'https://images.unsplash.com/photo-1501854140884-074bf6b243e7?auto=format&fit=crop&w=1200&q=80', // Горы и небо
+        'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1200&q=80', // Туманный лес
+        'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80', // Зеленые горы
+        'https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?auto=format&fit=crop&w=1200&q=80'  // Листья капли
+    ];
+
+    let currentIndex = 0;
+    const header = document.getElementById('header-bg');
+
+    function changeBackground() {
+        currentIndex = (currentIndex + 1) % images.length;
+        const imageUrl = `url('${images[currentIndex]}')`;
+        header.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), ${imageUrl}`;
+    }
+
+    // Смена фона каждые 5 секунд
+    setInterval(changeBackground, 5000);
+</script>
+
+</body>
+</html>
